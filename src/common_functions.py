@@ -1,4 +1,5 @@
 import os
+import openpyxl
 import pandas as pd
 # import numpy as np
 # import matplotlib.cm as cm
@@ -19,14 +20,14 @@ during a variety of different tasks:
 It is not designed to be used as a standalone script, but rather as a slave to
 multiple scripts:
     - BIDS_formater.py
-    - graph_generator.py
-    - graph_generator_BIDS.py
-    - graph_functions.py
-    - report_PTA.py
-    - report_MTX.py
-    - report_TEOAE.py
-    - report_DPOAE.py
-    - report_DPGrowth.py
+#    - graph_generator.py
+#    - graph_generator_BIDS.py
+#    - graph_functions.py
+#    - report_PTA.py
+#    - report_MTX.py
+#    - report_TEOAE.py
+#    - report_DPOAE.py
+#    - report_DPGrowth.py
 """
 
 if __name__ == "__main__":
@@ -133,7 +134,7 @@ else:
                             filename = os.path.join(data_path,
                                                     "test_database.xlsx")
                             df = pd.read_excel(filename, na_filter=True)
-                            print(df)
+                            #print(df)
                             return df
 
                         # Test Dummy
@@ -199,6 +200,8 @@ else:
         OUTPUTS:
         -returns the index of the selected baseline session (for the
          sub-0X_sessions.tsv file)
+        USED BY:
+        -
         """
 
         ls_baseline = ["Baseline #1 (November 2018 - July 2019)",
