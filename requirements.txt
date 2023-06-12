@@ -1,8 +1,9 @@
 numpy
 pandas
+openpyxl
 plotly
 matplotlib
-sklearn
+scikit-learn
 colorama
 seaborn
 notebook
