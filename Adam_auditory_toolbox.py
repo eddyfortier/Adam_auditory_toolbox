@@ -94,8 +94,8 @@ while loop_value:
                         # BIDS compatible dataset formating
                         elif ls_fct[value - 1] == ("BIDS format's auditory "
                                                    "data exporter"):
-                            formater.master_run(os.path.join(".", "data"),
-                                                os.path.join(".", "results"))
+                            formater.master_run("data",
+                                                "results")
                             print("\n")
 
 #                    # Graph generation functionalities
