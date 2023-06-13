@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import json
+import colorama as color
 # import glob
 
 from datetime import datetime as date
@@ -13,56 +15,30 @@ SCRIPT DESCRIPTION:
 
 This script transforms the auditory test data saved as .csv (OAE tests) or
 placed in a properly formatted spreadsheet (other tests).
-Template available here:
+Spreadsheet template available here (under CC BY-SA 4.0 license)
 [ https://docs.google.com/spreadsheets/d/
   1aKakQJvJnvPUouTUciGm3FMlnNAGIX8NXhulbhjq9d4/edit?usp=sharing ]
 
 This script uses the BIDS_formater.py and common_functions.py scripts to be
 able to process data and generate a BIDS-format compatible dataset out of
-auditory test data.
+auditory test data. It will also activate json_sidecar_generator.py if needed.
 
 It can either be used as a standalone script or be used through the UI master
-script, main.py.
+script, Adam_auditory_toolbox.py.
 """
 
+utf = "UTF-8-SIG"
 
-# Create a list of the subjects and a reference path for the results
-subjects = ['sub-01', 'sub-02', 'sub-03', 'sub-04', 'sub-05', 'sub-06']
-
-# Specify the columns to be used for each test
-# -> Subject and session settings data
-columns_conditions = ["Participant_ID", "Date",
-                      "Session_ID", "Protocol name",
-                      "Protocol condition", "Scan type"]
-
-# Generate the column titles to be used in the tsv files
-x_tymp = ["order", "side", 'type', 'tpp', 'ecv', 'sc', 'tw']
-x_reflex = ["order", "side",
-            "500_hz", "1000_hz", "2000_hz", "4000_hz", 'noise']
-x_PTA = ["order", "side", "250_hz", "500_hz", "1000_hz",
-         "2000_hz", "3000_hz", "4000_hz", "6000_hz", "8000_hz",
-         "9000_hz", "10000_hz", "11200_hz", "12500_hz",
-         "14000_hz", "16000_hz", "18000_hz", "20000_hz"]
-x_MTX = ["order", "language", "practice", "sp_bin_no_bin",
-         "sp_l_no_bin", "sp_r_no_bin", "sp_l_no_l", "sp_r_no_r"]
-x_teoae = ["order", "side", "freq", "oae",
-           "noise", "snr", "confidence"]
-x_dpoae = ["order", "side", "freq1", "freq2", "l1",
-           "l2", "dp", "snr", "noise+2sd", "noise+1sd",
-           "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"]
-x_growth = ["order", "side", "freq1", "freq2", "l1",
-            "l2", "dp", "snr", "noise+2sd", "noise+1sd",
-            "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"]
 
 # Specify the protocol conditions including OAE tests
-condition_OAE = ["Baseline",
-                 "Condition 2 (2-7 days post-scan)",
-                 "Condition 3A (OAEs right before the scan)",
-                 "Condition 3B (OAEs right after the scan)"]
+#condition_OAE = ["Baseline",
+#                 "Condition 2 (2-7 days post-scan)",
+#                 "Condition 3A (OAEs right before the scan)",
+#                 "Condition 3B (OAEs right after the scan)"]
 
 # Specifiy the different tests used in those different protocol conditions
-ls_test = ["Tymp", "Reflex", "PTA", "MTX", "TEOAE", "DPOAE",
-           "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"]
+#ls_test = ["Tymp", "Reflex", "PTA", "MTX", "TEOAE", "DPOAE",
+#           "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"]
 
 
 def fetch_db(data_path):
@@ -91,7 +67,8 @@ def fetch_oae_data(data_path):
     INPUTS:
     -data_path: path to the [repo_root]/data/auditory_tests/ folder
     OUTPUTS
-    -returns: - the list of all the OAE test data filenames
+    -returns: - the path to the OAE test data folder
+              - the list of all the OAE test data filenames
               - a dataframe containing a by-test breakdown information:
                   - the participant ID
                   - the session experimental condition and date
@@ -100,7 +77,16 @@ def fetch_oae_data(data_path):
     """
 
     path = os.path.join(data_path, "OAE")
-    ls_file = os.listdir(path)
+    try:
+        ls_file = os.listdir(path)
+    except FileNotFoundError as error:
+        #print(error, "\n")
+        #print(error.args[1], "\n")
+        #print(type(error.args[1]), "\n", "\n")
+        if error.args[0] == 2 and error.args[1] == "No such file or directory":
+            raise RuntimeError("The OAE data folder is missing.")
+        else:
+            pass
 
     ls_of_ls = []
 
@@ -114,7 +100,7 @@ def fetch_oae_data(data_path):
                                "Test",
                                "Ear"])
 
-    return ls_file, df
+    return path, ls_file, df
 
 
 def subject_extractor(df, subject_ID):
@@ -170,23 +156,62 @@ def create_folder_session(subject, session_count, parent_path):
     return ls_ses, children_path
 
 
-def master_run(data_path, result_path):
+def master_run(data_path, result_path, var_json):
     """
     This is the master function that activates the others.
     INPUTS:
     -data_path: path to the data folder ([repo_root]/data/)
     -result_path: path to the results folder ([repo_root]/results/)
+    -var_json: frequent-variables dictionary
     OUTPUTS:
     -NO specific return to the script (highest function level)
     -prints some feedback to the user in the terminal
     """
 
+    # Create a list of the subjects and a reference path for the results
+    subjects = var_json["subjects"]
+
+    # Generate the column titles to be used in the tsv files
+    x_tymp = var_json["tsv_columns"]["x_tymp"]
+    x_reflex = var_json["tsv_columns"]["x_reflex"]
+    x_PTA = var_json["tsv_columns"]["x_PTA"]
+    x_MTX = var_json["tsv_columns"]["x_MTX"]
+    x_teoae = var_json["tsv_columns"]["x_teoae"]
+    x_dpoae = var_json["tsv_columns"]["x_dpoae"]
+    x_growth = var_json["tsv_columns"]["x_growth"]
+
+    # Specify the protocol conditions including OAE tests
+    condition_OAE = var_json["condition_OAE"]
+
+    # Specify the columns to be used for each test
+    # -> Subject and session settings data
+    columns_conditions = var_json["columns_conditions"]
+    
+    # Specifiy the different tests used in those different protocol conditions
+    ls_test = var_json["ls_test"]
+
     # retrieve a database
     df = fetch_db(data_path)
     auditory_test_path = os.path.join(data_path, "auditory_tests")
-    oae_file_list, oae_tests_df = fetch_oae_data(auditory_test_path)
+    
+    try:
+        (oae_folder_path,
+         oae_file_list,
+         oae_tests_df) = fetch_oae_data(auditory_test_path)
+
+    except RuntimeError as error:
+        if error.args[0] == "The OAE data folder is missing.":
+            oae_folder_path = os.path.join(auditory_test_path, "OAE")
+            skip_oae = True
+            print(color.Fore.YELLOW
+                  + (f"WARNING: The following path does not exist "
+                     f"\"{oae_folder_path}\".\n"))
+        else:
+            skip_oae = False
+            raise
 
     # Verifications:
+    # - existence of the "results" folder
     # - existence of the "BIDS_data" folder
     # - existence of the run-level json sidecar originals
     #   (tymp, reflex, PTA, MTX)
@@ -261,6 +286,7 @@ def master_run(data_path, result_path):
             columns_MTX_L2.append(i)
 
     for i in subjects:
+        #print(i)
 
         # Check if the subject-level folders exist
         # If not, create them
@@ -268,7 +294,11 @@ def master_run(data_path, result_path):
 
         # Extraction of all the session for the subject
         data_sub = subject_extractor(df, i)
-        data_oae_sub = subject_extractor(oae_tests_df, i)
+        
+        if skip_oae:
+            pass
+        else:
+            data_oae_sub = subject_extractor(oae_tests_df, i)
 
         data_sub.insert(loc=3, column="Session_ID", value=None)
 
@@ -276,11 +306,13 @@ def master_run(data_path, result_path):
         k = 0
         while k < len(data_sub):
 
-            data_sub["Session_ID"][k] = f"{k+1:02d}"
+            data_sub.loc[k, "Session_ID"] = f"{k+1:02d}"
 
-            if data_sub["Protocol condition"][k] == ("Condition 3A "
-                                                     "(OAEs right before "
-                                                     "the scan)"):
+            if (data_sub["Protocol condition"][k]
+                    in var_json["OAE_only"]["exist_cond"]):
+                key_oae_only = data_sub["Protocol condition"][k]
+                txt_oae_only = var_json["OAE_only"]["cond_pair"][key_oae_only]
+
                 sub_df_A = data_sub.iloc[:k+1]
                 sub_df_B = data_sub.iloc[k+1:]
 
@@ -288,9 +320,7 @@ def master_run(data_path, result_path):
                 sub_df_C.drop(sub_df_C.index[k+1:], inplace=True)
                 sub_df_C.drop(sub_df_C.index[0:k], inplace=True)
 
-                sub_df_C.loc[k, "Protocol condition"] = ("Condition 3B (OAEs "
-                                                         "right after the "
-                                                         "scan)")
+                sub_df_C.loc[k, "Protocol condition"] = txt_oae_only
                 sub_df_C.loc[k, "Session_ID"] = f"{k+2:02d}"
 
                 ls_columns = sub_df_C.columns.tolist()
@@ -298,7 +328,7 @@ def master_run(data_path, result_path):
                 del ls_columns[0:index_tests]
 
                 for m in ls_columns:
-                    sub_df_C[m][k] = "n/a"
+                    sub_df_C.loc[k, m] = "n/a"
 
                 data_sub = pd.concat([sub_df_A, sub_df_C, sub_df_B])
                 data_sub.reset_index(inplace=True, drop=True)
@@ -330,13 +360,18 @@ def master_run(data_path, result_path):
                                       columns_MTX)
         oae = data_sub[columns_conditions]
 
+        #print(columns_PTA)
+        #print(pta)
+
         # Replace PTA values "130" with "No response"
         for n in columns_PTA:
             for p in range(0, len(pta)):
-                if pta.iloc[p][n] == 130:
-                    pta.iloc[p][n] = "No response"
+                if pta.loc[p, n] == 130:
+                    pta.loc[p, n] = "No response"
                 else:
                     pass
+
+        #print(pta)
 
         # Dataframe reconstruction
         utils.extract_tymp(tymp, columns_tymp_R,
@@ -351,12 +386,16 @@ def master_run(data_path, result_path):
         utils.extract_mtx(mtx, columns_MTX_L1,
                           columns_MTX_L2, x_MTX,
                           result_path)
-        utils.extract_teoae(oae, data_oae_sub, oae_file_list,
-                            x_teoae, auditory_test_path, result_path)
-        utils.extract_dpoae(oae, data_oae_sub, oae_file_list,
-                            x_dpoae, auditory_test_path, result_path)
-        utils.extract_growth(oae, data_oae_sub, oae_file_list,
-                             x_growth, auditory_test_path, result_path)
+
+        if skip_oae:
+            pass
+        else:
+            utils.extract_teoae(oae, data_oae_sub, oae_file_list,
+                                x_teoae, auditory_test_path, result_path)
+            utils.extract_dpoae(oae, data_oae_sub, oae_file_list,
+                                x_dpoae, auditory_test_path, result_path)
+            utils.extract_growth(oae, data_oae_sub, oae_file_list,
+                                 x_growth, auditory_test_path, result_path)
 
         # .tsv session-level reference file creation
         column_reference = ["session_id", "session_name",
@@ -378,10 +417,11 @@ def master_run(data_path, result_path):
             # Calculation of the number of days since Baseline #1
             index_date_bsl = data_sub.index[(data_sub["Protocol name"]
                                              == "Baseline 1")].tolist()
-            date_bsl = date.strptime(data_sub.at[index_date_bsl[0], "Date"],
-                                     "%Y-%m-%d")
-            date_ses = date.strptime(data_sub.at[y, "Date"],
-                                     "%Y-%m-%d")
+            str_date_bsl = str(data_sub.at[index_date_bsl[0],
+                               "Date"]).split(" ")
+            date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
+            str_date_ses = str(data_sub.at[y, "Date"]).split(" ")
+            date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
             value_delay = date_ses - date_bsl
 
             ls_name.append(data_sub.at[y, "Protocol name"])
@@ -469,10 +509,16 @@ def master_run(data_path, result_path):
 
 if __name__ == "__main__":
     root_path = ".."
-    data_path = os.path.join(root_path, "data")
-    result_path = os.path.join(root_path, "results")
 
-    master_run(data_path, result_path)
+    with open(os.path.join(root_path, "variables.json"), "r") as origin:
+        var_json = json.load(origin)
+    origin.close()
+
+    # Path initializations
+    data_path = os.path.join(root_path, var_json["path_var"]["data"])
+    result_path = os.path.join(root_path, var_json["path_var"]["result"])
+
+    master_run(data_path, result_path, var_json)
     print("\n")
 
 
