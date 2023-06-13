@@ -49,12 +49,7 @@ def fetch_db(data_path):
     -returns a dataframe containing the database to use
     """
 
-    df = common.retrieve_db(data_path)
-
-#    if df == "break":
-#        quit()
-#    else:
-#        pass
+    df = common.retrieve_db(data_path, "standalone")
 
     # Manage the empty boxes
     df.fillna(value='n/a', inplace=True)

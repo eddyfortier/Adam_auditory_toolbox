@@ -38,7 +38,6 @@ def result_location(result_path):
     else:
         result_parent = os.path.split(result_path)
         os.mkdir(os.path.join(result_parent[0], "results"))
-        print("else")
 
     # Results location existence verifications
     content_result_path = os.listdir(result_path)

@@ -20,14 +20,14 @@ during a variety of different tasks:
 It is not designed to be used as a standalone script, but rather as a slave to
 multiple scripts:
     - BIDS_formater.py
-#    - graph_generator.py
-#    - graph_generator_BIDS.py
-#    - graph_functions.py
-#    - report_PTA.py
-#    - report_MTX.py
-#    - report_TEOAE.py
-#    - report_DPOAE.py
-#    - report_DPGrowth.py
+    #- graph_generator.py
+    #- graph_generator_BIDS.py
+    #- graph_functions.py
+    #- report_PTA.py
+    #- report_MTX.py
+    #- report_TEOAE.py
+    #- report_DPOAE.py
+    #- report_DPGrowth.py
 """
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
              "standalone script."))
 
 else:
-    def retrieve_db(data_path):
+    def retrieve_db(data_path, method="master_script"):
         """
         This function gives the user a choice on how to retrieve the database.
         Available options are:
@@ -49,6 +49,14 @@ else:
                ([repo_root]/data/test_database.xlsx)
         INPUTS:
         -data_path: path to the [repo_root]/data folder
+        -method: method used to activate this function.
+                 The valid means are:
+                    -"master_script": -the Adam_auditory_toolbox.py script
+                                       activates this function.
+                                      -> DEFAULT VALUE
+                    -"standalone": one of the scripts in the src/ folder is
+                                   activated as a standalone script and is
+                                   using this fonction.
         OUTPUTS:
         -returns the database in a pandas dataframe
         """
@@ -70,10 +78,20 @@ else:
         for i in range(0, len(ls_fct)):
             prompt_options += ("\n " + str(i+1) + "-" + ls_fct[i])
 
-        prompt_options += ("\n "
-                           + str(len(ls_fct)+1)
-                           + "-Return to the main menu\n"
-                          )
+        if method == "master_script":
+            prompt_options += ("\n "
+                               + str(len(ls_fct)+1)
+                               + "-Return to the main menu\n"
+                              )
+        elif method == "standalone":
+            prompt_options += ("\n")
+        else:
+            print(color.Fore.RED
+                  + (f"ERROR: The specified database retrieval method "
+                     f"variable (\"{method}\") is invalid.\n")
+                  + ("\nValid method variables are \"master_script\" and "
+                     "\"standalone\".\n"))
+            exit()
 
         prompt_txt = prompt_instruction + prompt_options
 
@@ -95,8 +113,14 @@ else:
                 if value > 0 and value <= len(ls_fct) + 1:
 
                     # Loop breaks if the "Exit" option is selected
-                    if value == len(ls_fct) + 1:
+                    if value == len(ls_fct) + 1 and method == "master_script":
                         raise RuntimeError("Return to the main menu")
+                    
+                    elif value == len(ls_fct) + 1 and method == "standalone":
+                        print(color.Fore.RED
+                              + ("ERROR: The provided value is not valid "
+                                 "(out of bound).\n"))
+                        continue
 
                     # The encased section contains the subscript calls.
                     # If functionality are to be added, here is where to
