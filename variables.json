@@ -1,0 +1,78 @@
+{
+  "path_var": {
+    "data": "data",
+    "result": "results"
+  },
+  "subjects": [
+    "sub-01", "sub-02", "sub-03", "sub-04", "sub-05", "sub-06"
+  ],
+  "columns_conditions": [
+    "Participant_ID", "Date", "Session_ID",
+    "Protocol name", "Protocol condition", "Scan type"
+  ],
+  "tsv_columns": {
+    "x_tymp": [
+      "order", "side", "type", "tpp",
+      "ecv", "sc", "tw"
+    ],
+    "x_reflex": [
+      "order", "side", "500_hz", "1000_hz",
+      "2000_hz", "4000_hz", "noise"
+    ],
+    "x_PTA": [
+      "order", "side", "250_hz", "500_hz", "1000_hz", "2000_hz",
+      "3000_hz", "4000_hz", "6000_hz", "8000_hz", "9000_hz",
+      "10000_hz", "11200_hz", "12500_hz", "14000_hz", "16000_hz",
+      "18000_hz", "20000_hz"
+    ],
+    "x_MTX": [
+      "order", "language", "practice",
+      "sp_bin_no_bin", "sp_l_no_bin", "sp_r_no_bin",
+      "sp_l_no_l", "sp_r_no_r"
+    ],
+    "x_teoae": [
+      "order", "side", "freq", "oae",
+      "noise", "snr", "confidence"
+    ],
+    "x_dpoae": [
+      "order", "side", "freq1", "freq2", "l1", "l2",
+      "dp", "snr", "noise+2sd", "noise+1sd",
+      "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"
+    ],
+    "x_growth": [
+      "order", "side", "freq1", "freq2", "l1", "l2",
+      "dp", "snr", "noise+2sd", "noise+1sd",
+      "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"
+    ]
+  },
+  "conditions": [
+    "Baseline",
+    "Condition 1A (right before the scan)",
+    "Condition 1B (right after the scan)",
+    "Condition 2 (2-7 days post-scan)",
+    "Condition 3A (OAEs right before the scan)",
+    "Condition 3B (OAEs right after the scan)",
+    "Supplementary PTA test (Baseline)",
+    "Suppl. PTA test (right before the scan)",
+    "Suppl. PTA test (right after the scan)"
+  ],  
+  "condition_OAE": [
+    "Baseline",
+    "Condition 2 (2-7 days post-scan)",
+    "Condition 3A (OAEs right before the scan)",
+    "Condition 3B (OAEs right after the scan)"
+  ],
+  "OAE_only": {
+    "exist_cond": [
+      "Condition 3A (OAEs right before the scan)"
+    ],
+    "cond_pair": {
+      "Condition 3A (OAEs right before the scan)": 
+      "Condition 3B (OAEs right after the scan)"
+    }
+  },
+  "ls_test": [
+    "Tymp", "Reflex", "PTA", "MTX", "TEOAE", "DPOAE",
+    "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"
+  ]
+}
