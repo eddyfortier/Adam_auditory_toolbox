@@ -32,6 +32,14 @@ def result_location(result_path):
     -NO specific return to the script
     """
 
+    # Results folder existence verification
+    if os.path.exists(result_path):
+        pass
+    else:
+        result_parent = os.path.split(result_path)
+        os.mkdir(os.path.join(result_parent[0], "results"))
+        print("else")
+
     # Results location existence verifications
     content_result_path = os.listdir(result_path)
     content_result_path.sort()
@@ -452,7 +460,7 @@ def extract_mtx(single_test_df, ls_columns_1,
         y[0].append("1")
 
         for k in ls_columns_1:
-            value_1 = str(single_test_df[k][j].replace(",", "."))
+            value_1 = str(single_test_df[k][j]).replace(",", ".")
             try:
                 float(value_1)
             except ValueError:
@@ -463,7 +471,7 @@ def extract_mtx(single_test_df, ls_columns_1,
         y[1].append("2")
 
         for m in ls_columns_2:
-            value_2 = str(single_test_df[m][j].replace(",", "."))
+            value_2 = str(single_test_df[m][j]).replace(",", ".")
             try:
                 float(value_2)
             except ValueError:
