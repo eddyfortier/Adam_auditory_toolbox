@@ -1,4 +1,5 @@
 import os
+import json
 import colorama as color
 
 #from src import report_PTA
@@ -16,33 +17,40 @@ from src import json_sidecar_generator as jsg
 color.init(autoreset=True)
 
 # Available functions list
-ls_fct = ["BIDS format's json sidecars creation",
-          "BIDS format's auditory data exporter",
-#          "Pure Tone Audiometry interactive graph generator",
-#          "Matrix Speech-in-Noise Test interactive graph generator",
-#          "Transient-evoked OAE test graph generator",
-#          "Distortion product OAE test graph generator",
-#          "Distortion product growth function test graph generator",
-#          "Pure Tone Audiometry report generator",
-#          "Matrix Speech-in-Noise Test report generator",
-#          "Distortion product OAE report generator",
-#          "Distortion product growth function report generator",
-#          "MRI session design files generator (in development)",
-          # "Dummy line",
-          ]
+ls_fct = [
+    "BIDS format's json sidecars creation",
+    "BIDS format's auditory data exporter",
+#    "Pure Tone Audiometry interactive graph generator",
+#    "Matrix Speech-in-Noise Test interactive graph generator",
+#    "Transient-evoked OAE test graph generator",
+#    "Distortion product OAE test graph generator",
+#    "Distortion product growth function test graph generator",
+#    "Pure Tone Audiometry report generator",
+#    "Matrix Speech-in-Noise Test report generator",
+#    "Distortion product OAE report generator",
+#    "Distortion product growth function report generator",
+#    "MRI session design files generator (in development)",
+    # "Dummy line",
+]
 
 # Prompt text generation
-prompt_instruction = (color.Style.BRIGHT
-                      + "Please enter the number of the pipeline "
-                        "functionality you want to run:"
-                      + color.Style.RESET_ALL)
+prompt_instruction = (
+    color.Style.BRIGHT
+    + "Please enter the number of the pipeline functionality you want to run:"
+    + color.Style.RESET_ALL
+)
 
 prompt_options = ""
 
 for i in range(0, len(ls_fct)):
-    prompt_options += ("\n " + str(i+1) + "-" + ls_fct[i])
+    prompt_options += "\n "
+    prompt_options += str(i+1)
+    prompt_options += "-"
+    prompt_options += ls_fct[i]
 
-prompt_options += ("\n " + str(len(ls_fct)+1) + "-Exit\n")
+prompt_options += "\n "
+prompt_options += str(len(ls_fct) + 1)
+prompt_options += "-Exit\n"
 
 prompt_txt = prompt_instruction + prompt_options
 
@@ -50,9 +58,11 @@ prompt_txt = prompt_instruction + prompt_options
 loop_value = True
 
 # Show welcome message
-print(color.Style.BRIGHT
-      + color.Fore.YELLOW
-      + "\nWelcome to the Adam_auditory_toolbox.\n")
+print(
+    color.Style.BRIGHT
+    + color.Fore.YELLOW
+    + "\nWelcome to the Adam_auditory_toolbox.\n"
+)
 
 # function selection prompt
 while loop_value:
@@ -74,11 +84,11 @@ while loop_value:
                 if value == len(ls_fct) + 1:
                     break
 
-    # The encased section contains the subscript calls.
-    # If functionality are to be added, here is where to add them.
-    # (Don't forget to also add them to the list of available functions:
-    # ls_fct)
-    ###########################################################################
+                # The encased section contains the subscript calls.
+                # If functionality are to be added, here is where to add them.
+                # (Don't forget to also add them to the list of available
+                # functions: ls_fct)
+                ###############################################################
 
                 else:
 
@@ -86,16 +96,21 @@ while loop_value:
                     if ls_fct[value - 1].count("BIDS") == 1:
 
                         # json sidecar files generation
-                        if ls_fct[value - 1] == ("BIDS format's json sidecars "
-                                                 "creation"):
+                        if ls_fct[value - 1] == (
+                            "BIDS format's json sidecars creation"
+                        ):
                             jsg.create_sidecars(os.path.join(".", "results"))
                             print("\n")
 
                         # BIDS compatible dataset formating
-                        elif ls_fct[value - 1] == ("BIDS format's auditory "
-                                                   "data exporter"):
-                            formater.master_run("data",
-                                                "results")
+                        elif ls_fct[value - 1] == (
+                            "BIDS format's auditory data exporter"
+                        ):
+                            with open("variables.json", "r") as origin:
+                                var_json = json.load(origin)
+                            origin.close()
+
+                            formater.master_run("data", "results", var_json)
                             print("\n")
 
 #                    # Graph generation functionalities
@@ -181,15 +196,19 @@ while loop_value:
             else:
 
                 # If it is not within range, restart the loop
-                print(color.Fore.RED
-                      + "The provided value is not valid (out of bound).\n")
+                print(
+                    color.Fore.RED
+                    + "The provided value is not valid (out of bound).\n"
+                )
                 continue
 
         else:
 
             # If it is not a number, restart the loop
-            print(color.Fore.RED
-                  + "The provided value is not valid (not a digit).\n")
+            print(
+                color.Fore.RED
+                + "The provided value is not valid (not a digit).\n"
+            )
             continue
 
     # If the submenu "Return to the main menu" option is selected
@@ -200,6 +219,8 @@ while loop_value:
             raise
 
 # Exit message
-print(color.Style.BRIGHT
-      + color.Fore.YELLOW
-      + "Thanks for using the Adam_auditory_toolbox.\n")
+print(
+    color.Style.BRIGHT
+    + color.Fore.YELLOW
+    + "Thanks for using the Adam_auditory_toolbox.\n"
+)
