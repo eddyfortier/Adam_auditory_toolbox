@@ -2,15 +2,8 @@ import os
 import json
 import colorama as color
 
-#from src import report_PTA
-#from src import report_MTX
-#from src import report_DPOAE as report_DP
-#from src import report_DPGrowth as report_DPGr
-
 from src import BIDS_formater as formater
 from src import json_sidecar_generator as jsg
-#from src import MRI_session_design_generator as ses_design
-#from src import graph_generator_BIDS as graph
 
 
 # Initialize colorama
@@ -20,16 +13,6 @@ color.init(autoreset=True)
 ls_fct = [
     "BIDS format's json sidecars creation",
     "BIDS format's auditory data exporter",
-#    "Pure Tone Audiometry interactive graph generator",
-#    "Matrix Speech-in-Noise Test interactive graph generator",
-#    "Transient-evoked OAE test graph generator",
-#    "Distortion product OAE test graph generator",
-#    "Distortion product growth function test graph generator",
-#    "Pure Tone Audiometry report generator",
-#    "Matrix Speech-in-Noise Test report generator",
-#    "Distortion product OAE report generator",
-#    "Distortion product growth function report generator",
-#    "MRI session design files generator (in development)",
     # "Dummy line",
 ]
 
@@ -113,78 +96,6 @@ while loop_value:
                             formater.master_run("data", "results", var_json)
                             print("\n")
 
-#                    # Graph generation functionalities
-#                    elif ls_fct[value - 1].count("graph") == 1:
-
-#                        # PTA graph plotting
-#                        if ls_fct[value - 1].count("Pure Tone") == 1:
-#                            graph.master_run(".", "PTA")
-#                            print("\n")
-
-#                        # MTX graph plotting
-#                        elif ls_fct[value - 1].count("Matrix") == 1:
-#                            graph.master_run(".", "MTX")
-#                            print("\n")
-
-#                        # TEOAE graph plotting
-#                        elif ls_fct[value - 1].count("Transient") == 1:
-#                            graph.master_run(".", "TEOAE")
-#                            print("\n")
-
-#                        # Distortion product (DPOAE and DP Growth) OAEs
-#                        elif ls_fct[value - 1].count("Distortion"):
-
-#                            # DPOAE graph plotting
-#                            if ls_fct[value - 1] == ("Distortion product OAE "
-#                                                     "test graph generator"):
-#                                graph.master_run(".", "DPOAE")
-#                                print("\n")
-
-#                            # DP Growth graph plotting
-#                            elif ls_fct[value - 1] == ("Distortion product "
-#                                                       "growth function test "
-#                                                       "graph generator"):
-#                                graph.master_run(".", "Growth")
-#                                print("\n")
-
-#                    # Report generation capabilities
-#                    elif ls_fct[value - 1].count("report") == 1:
-
-#                        # PTA report generation
-#                        if ls_fct[value - 1].count("Pure Tone") == 1:
-#                            report_PTA.master_run(os.path.join(".",
-#                                                               "results"))
-#                            print("\n")
-
-#                        # MTX report generation
-#                        elif ls_fct[value - 1].count("Matrix") == 1:
-#                            report_MTX.master_run(os.path.join(".",
-#                                                               "results"))
-#                            print("\n")
-
-#                        # Distortion product (DPOAE and DP Growth) OAEs
-#                        elif ls_fct[value - 1].count("Distortion"):
-
-#                            # DPOAE report generation
-#                            if ls_fct[value - 1] == ("Distortion product OAE "
-#                                                     "report generator"):
-#                                report_DP.master_run(os.path.join(".",
-#                                                                  "results"))
-#                                print("\n")
-
-#                            # DP Growth report generation
-#                            elif ls_fct[value - 1] == ("Distortion product "
-#                                                       "growth function "
-#                                                       "report generator"):
-#                                report_DPGr.master_run(os.path.join(".",
-#                                                                    "results"))
-#                                print("\n")
-
-#                    # MRI sessions design files generation functionalities
-#                    elif ls_fct[value - 1].count("design files") == 1:
-#                        ses_design.master_run(os.path.join(".", "data"))
-#                        print("\n")
-
                     # Test Dummy
                     elif ls_fct[value - 1].count("Dummy") == 1:
                         print("This is just a test line:",
@@ -211,10 +122,15 @@ while loop_value:
             )
             continue
 
-    # If the submenu "Return to the main menu" option is selected
+    # RuntimeError processing
     except RuntimeError as error:
+
+        # If the submenu "Return to the main menu" option is selected
         if error.args[0] == "Return to the main menu":
             continue
+        # If there is a BIDSified ID conflict
+        elif error.args[0] == "BIDSified ID conflict":
+            exit()
         else:
             raise
 
@@ -224,3 +140,20 @@ print(
     + color.Fore.YELLOW
     + "Thanks for using the Adam_auditory_toolbox.\n"
 )
+
+
+#if __name__ == "__main__":
+#    with open("variables.json", "r") as origin:
+#        var_json = json.load(origin)
+#    origin.close()
+
+#    # Path initializations
+#    data_path = var_json["path_var"]["data"]
+#    result_path = var_json["path_var"]["result"]
+
+#    # Show welcome message
+#    print(
+#        color.Style.BRIGHT
+#        + color.Fore.YELLOW
+#        + "\nWelcome to the Adam_auditory_toolbox.\n"
+#    )
