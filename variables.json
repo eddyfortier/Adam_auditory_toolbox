@@ -4,7 +4,7 @@
     "result": "results"
   },
   "subjects": [
-    "sub-01", "sub-02", "sub-03", "sub-04", "sub-05", "sub-06"
+    "TestID01", "iD test-0_02", "Sub-01", "sub-02", "Sub03", "sub04", "Sub-04"
   ],
   "columns_conditions": [
     "Participant_ID", "Date", "Session_ID",
