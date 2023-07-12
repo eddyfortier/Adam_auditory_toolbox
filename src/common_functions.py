@@ -18,16 +18,8 @@ during a variety of different tasks:
     - data analysis reports
 
 It is not designed to be used as a standalone script, but rather as a slave to
-multiple scripts:
+another script:
     - BIDS_formater.py
-    #- graph_generator.py
-    #- graph_generator_BIDS.py
-    #- graph_functions.py
-    #- report_PTA.py
-    #- report_MTX.py
-    #- report_TEOAE.py
-    #- report_DPOAE.py
-    #- report_DPGrowth.py
 """
 
 if __name__ == "__main__":
@@ -157,7 +149,9 @@ else:
                               == 1):
                             filename = os.path.join(data_path,
                                                     "test_database.xlsx")
-                            df = pd.read_excel(filename, na_filter=True)
+                            df = pd.read_excel(
+                                filename, engine="openpyxl", na_filter=True
+                            )
                             #print(df)
                             return df
 
@@ -182,12 +176,56 @@ else:
                          "(not a digit).\n"))
                 continue
 
+    def bidsify_ID(ID):
+        """
+        This function verifies that a subject ID is compliant with BIDS
+        standards. If it is not, it modifies it to comply with BIDS standards.
+        INPUTS:
+        -ID: subject ID to be evaluated
+        OUTPUT:
+        -returns the original ID if it is compliant, returns an adapted ID if
+         the original was not compliant
+        """
+
+        #print("ID before", ID)
+
+        if ID.count(" ") != 0:
+            ls_ID = ID.split(" ")
+            ID = "".join(ls_ID)
+        else:
+            pass
+
+        if ID.count("-") != 0:
+            ls_ID = ID.split("-")
+            ID = "".join(ls_ID)
+        else:
+            pass
+
+        if ID.count("_") != 0:
+            ls_ID = ID.split("_")
+            ID = "".join(ls_ID)
+        else:
+            pass
+
+        if ID.startswith("sub"):
+            ID = ID.lstrip("sub")
+        elif ID.startswith("Sub"):
+            ID = ID.lstrip("Sub")
+        elif ID.startswith("SUB"):
+            ID = ID.lstrip("SUB")
+        else:
+            pass
+
+        #print("ID after", ID)
+
+        return ID
+
     def create_folder_subjects(subject, parent_path):
         """
         This function creates by-subject folders in a specified folder
         INPUTS:
         -subject: subject ID used by the script or the database's
-                  dataframe (format: sub-0X or Sub0X)
+                  dataframe
         -parent_path: path to get inside the specified folder
         OUTPUTS:
         -folder for the provided subject ID in the BIDS_data/ folder
@@ -200,19 +238,27 @@ else:
         dir_content = os.listdir(parent_path)
         dir_content.sort()
 
-        sub_ID = ""
+        sub_lower = subject.lower()
 
-        for i in subject:
-            if i.isdigit():
-                sub_ID += i
-            else:
-                pass
+        if sub_lower.startswith("sub"):
+            sub_ID = ""
 
-        if dir_content.count(f"sub-{sub_ID}") == 1:
-            print(f"The subject's subfolder for sub-{sub_ID} is present.\n")
+            for i in sub_lower:
+                if i.isdigit():
+                    sub_ID += i
+                else:
+                    continue
+
+            subject = sub_ID
+
         else:
-            os.mkdir(os.path.join(parent_path, f"sub-{sub_ID}"))
-            print(f"The subject's subfolder for sub-{sub_ID} was created.\n")
+            pass
+
+        if dir_content.count(f"sub-{subject}") == 1:
+            print(f"The subject's subfolder for sub-{subject} is present.\n")
+        else:
+            os.mkdir(os.path.join(parent_path, f"sub-{subject}"))
+            print(f"The subject's subfolder for sub-{subject} was created.\n")
 
     def baseline_ID():
         """
