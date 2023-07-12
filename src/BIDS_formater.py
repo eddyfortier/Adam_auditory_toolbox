@@ -15,7 +15,7 @@ SCRIPT DESCRIPTION:
 
 This script transforms the auditory test data saved as .csv (OAE tests) or
 placed in a properly formatted spreadsheet (other tests).
-Spreadsheet template available here (under CC BY-SA 4.0 license)
+Spreadsheet template available here (under CC0 license)
 [ https://docs.google.com/spreadsheets/d/
   1aKakQJvJnvPUouTUciGm3FMlnNAGIX8NXhulbhjq9d4/edit?usp=sharing ]
 
@@ -130,12 +130,18 @@ def create_folder_session(subject, session_count, parent_path):
     -returns the list of the session folder names
     """
 
+    #print(parent_path)
+
     if subject.startswith("Sub"):
         sub_ID = subject.lstrip("Sub")
         children_path = os.path.join(parent_path, f"sub-{sub_ID}")
 
-    elif subject.startswith("sub-"):
-        children_path = os.path.join(parent_path, subject)
+    elif subject.startswith("sub"):
+        sub_ID = subject.lstrip("sub")
+        children_path = os.path.join(parent_path, f"sub-{sub_ID}")
+
+    else:
+        children_path = os.path.join(parent_path, f"sub-{subject}")
 
     dir_content = os.listdir(children_path)
 
@@ -147,6 +153,8 @@ def create_folder_session(subject, session_count, parent_path):
         else:
             os.mkdir(os.path.join(children_path, f"ses-{j:02d}"))
             ls_ses.append(f"ses-{j:02d}")
+
+    #print(children_path)
 
     return ls_ses, children_path
 
@@ -165,6 +173,11 @@ def master_run(data_path, result_path, var_json):
 
     # Create a list of the subjects and a reference path for the results
     subjects = var_json["subjects"]
+
+    # Create two lists of subject IDs to establish a concordence file between
+    # the original IDs and the bidsified IDs
+    ls_id_og = []
+    ls_id_bids = []
 
     # Generate the column titles to be used in the tsv files
     x_tymp = var_json["tsv_columns"]["x_tymp"]
@@ -187,6 +200,7 @@ def master_run(data_path, result_path, var_json):
 
     # retrieve a database
     df = fetch_db(data_path)
+    #print(df)
     auditory_test_path = os.path.join(data_path, "auditory_tests")
     
     try:
@@ -208,8 +222,8 @@ def master_run(data_path, result_path, var_json):
     # Verifications:
     # - existence of the "results" folder
     # - existence of the "BIDS_data" folder
-    # - existence of the run-level json sidecar originals
-    #   (tymp, reflex, PTA, MTX)
+    # - existence of the json sidecar originals
+    #   (tymp, reflex, PTA, MTX, OAE, sessions)
     # If not, creates them.
     utils.result_location(result_path)
 
@@ -283,9 +297,42 @@ def master_run(data_path, result_path, var_json):
     for i in subjects:
         #print(i)
 
+        ls_id_og.append(i)
+        #print(ls_id_og)
+
+        # Check if the subject ID is BIDS compatible
+        # If not, it modifies it to comply with BIDS standards
+        bids_id = common.bidsify_ID(i)
+
+        # Check if the new bidsified ID creates a conflict with another
+        # a previous bidsified ID
+        if bids_id in ls_id_bids:
+            index_bids_1 = ls_id_bids.index(bids_id)
+            index_bids_2 = len(ls_id_bids)
+            og_problem_1 = ls_id_og[index_bids_1]
+            og_problem_2 = ls_id_og[index_bids_2]
+
+            print(
+                color.Style.BRIGHT
+                + color.Fore.RED
+                + f"CRITICAL ERROR: Two participants IDs ({og_problem_1} and "
+                  f"{og_problem_2} are generating a conflict once they are "
+                  f"adapted to BIDS standard: they both become sub-{bids_id}. "
+                  "\nPlease modify one of the previously mentioned IDs (both "
+                  "in the dataset and the variables.json file) and run this "
+                  "pipeline again.\n"
+            )
+
+            raise RuntimeError("BIDSified ID conflict")
+
+        else:
+            ls_id_bids.append(bids_id)
+
+        #print(ls_id_bids)
+
         # Check if the subject-level folders exist
         # If not, create them
-        common.create_folder_subjects(i, parent_path)
+        common.create_folder_subjects(bids_id, parent_path)
 
         # Extraction of all the session for the subject
         data_sub = subject_extractor(df, i)
@@ -336,7 +383,7 @@ def master_run(data_path, result_path, var_json):
             k += 1
 
         # Creation of a folder for each session
-        ls_ses, subject_folder_path = create_folder_session(i,
+        ls_ses, subject_folder_path = create_folder_session(bids_id,
                                                             len(data_sub),
                                                             parent_path)
 
@@ -371,26 +418,29 @@ def master_run(data_path, result_path, var_json):
         # Dataframe reconstruction
         utils.extract_tymp(tymp, columns_tymp_R,
                            columns_tymp_L, x_tymp,
-                           result_path)
+                           subject_folder_path, bids_id)
         utils.extract_reflex(reflex, columns_reflex_R,
                              columns_reflex_L, x_reflex,
-                             result_path)
+                             subject_folder_path, bids_id)
         utils.extract_pta(pta, columns_PTA_R,
                           columns_PTA_L, x_PTA,
-                          result_path)
+                          subject_folder_path, bids_id)
         utils.extract_mtx(mtx, columns_MTX_L1,
                           columns_MTX_L2, x_MTX,
-                          result_path)
+                          subject_folder_path, bids_id)
 
         if skip_oae:
             pass
         else:
             utils.extract_teoae(oae, data_oae_sub, oae_file_list,
-                                x_teoae, auditory_test_path, result_path)
+                                x_teoae, auditory_test_path,
+                                result_path, subject_folder_path, bids_id)
             utils.extract_dpoae(oae, data_oae_sub, oae_file_list,
-                                x_dpoae, auditory_test_path, result_path)
+                                x_dpoae, auditory_test_path,
+                                result_path, subject_folder_path, bids_id)
             utils.extract_growth(oae, data_oae_sub, oae_file_list,
-                                 x_growth, auditory_test_path, result_path)
+                                 x_growth, auditory_test_path,
+                                 result_path, subject_folder_path, bids_id)
 
         # .tsv session-level reference file creation
         column_reference = ["session_id", "session_name",
@@ -486,7 +536,19 @@ def master_run(data_path, result_path, var_json):
         ref_save_path = os.path.join(subject_folder_path, ref_name + ".tsv")
         ref.to_csv(ref_save_path, sep="\t")
 
-        print(f"The tsv and json files for {i} have been created.\n")
+        print(
+            f"The tsv and json files for sub-{bids_id} ({i}) have been "
+            "created.\n"
+        )
+
+    dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
+
+    df_id_match = pd.DataFrame(dict_id_match)
+    #print(df_id_match)
+    id_match_save_path = os.path.join(parent_path,
+                                      "subject_ID_concordance.tsv")
+    #print(id_match_save_path)
+    df_id_match.to_csv(id_match_save_path, sep="\t")
 
     # This code section is present if, for any reason, the .tsv files are not
     # properly saved. You will first need to activate the "import glob" line
