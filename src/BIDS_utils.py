@@ -185,7 +185,7 @@ def eliminate_columns(sub_df, columns_conditions, test_columns):
 
 
 def save_df(data_tosave_df, single_test_df, index,
-            test, result_path, run="01"):
+            test, result_path, sub_id, run="01"):
     """
     This function is used to save the tsv files and json sidecars.
     INPUTS:
@@ -195,57 +195,33 @@ def save_df(data_tosave_df, single_test_df, index,
     -index: the line index (in single_test_df) linked with the data to save
             (data_tosave_df)
     -test: the selected test marker
-    -result_path: path to results ([repo_root]/results/)
+    -result_path: path to the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     -run: run indexer value (Default = 01)
     OUTPUTS:
     -saved tsv file
     -NO specific return to the script
     """
 
-    # Folder where to put each participants' folder
-    parent_path = os.path.join(result_path, "BIDS_data")
-
-    sub = single_test_df['Participant_ID'][index]
-
+    sub = "sub-" + sub_id
     ses = single_test_df["Session_ID"][index]
 
     # The next variable ("ext") can take the value ".csv".
     # The last code section of BIDS_formater.py must then be activated
     ext = '.tsv'
 
-    path = os.path.join(parent_path, sub, 'ses-' + ses)
+    path = os.path.join(result_path, "ses-" + ses)
+    #print("path:", path)
     file_name = (sub + '_ses-' + ses + '_task-'
                  + test + '_run-' + run + "_beh")
+    #print("file_name:", file_name)
 
     data_tosave_df.to_csv(os.path.join(path, file_name + ext), sep='\t')
 
-#    json_origin = os.path.join(result_path, "BIDS_sidecars_originals")
-
-#    if test == "Tymp":
-#        copyfile(os.path.join(json_origin, "tymp_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "Reflex":
-#        copyfile(os.path.join(json_origin, "reflex_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "PTA":
-#        copyfile(os.path.join(json_origin, "pta_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "MTX":
-#        copyfile(os.path.join(json_origin, "mtx_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "TEOAE":
-#        copyfile(os.path.join(json_origin, "teoae_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "DPOAE":
-#        copyfile(os.path.join(json_origin, "dpoae_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-#    elif test == "DPGrowth":
-#        copyfile(os.path.join(json_origin, "dpgrowth_run_level.json"),
-#                 os.path.join(path, file_name + ".json"))
-
 
 def extract_tymp(single_test_df, ls_columns_1,
-                 ls_columns_2, x, path):
+                 ls_columns_2, x, path, sub_id):
     """
     This function extracts every single tympanometry test and send the results
     to be saved by the save_df function.
@@ -255,7 +231,9 @@ def extract_tymp(single_test_df, ls_columns_1,
     -ls_columns_1: list of right ear test data column names
     -ls_columns_2: list of left ear test data column names
     -x: list of column names to use in the reconstructed, BIDS formated df
-    -path: path inside the results folder ([repo_root]/results/)
+    -path: path inside the subject's result folder
+           ([repo_root]/results/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -303,13 +281,13 @@ def extract_tymp(single_test_df, ls_columns_1,
 
         if len(y) > 0:
             z = pd.DataFrame(data=y, columns=x).set_index("order")
-            save_df(z, single_test_df, j, 'Tymp', path)
+            save_df(z, single_test_df, j, 'Tymp', path, sub_id)
         else:
             continue
 
 
 def extract_reflex(single_test_df, ls_columns_1,
-                   ls_columns_2, x, path):
+                   ls_columns_2, x, path, sub_id):
     """
     This function extracts every single stapedial reflex test and send the
     results to be saved by the save_df function.
@@ -319,7 +297,9 @@ def extract_reflex(single_test_df, ls_columns_1,
     -ls_columns_1: list of right ear test data column names
     -ls_columns_2: list of left ear test data column names
     -x: list of column names to use in the reconstructed, BIDS formated df
-    -path: path inside the results folder ([repo_root]/results/)
+    -path: path inside the subject's result folder
+           ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -367,13 +347,13 @@ def extract_reflex(single_test_df, ls_columns_1,
 
         if len(y) > 0:
             z = pd.DataFrame(data=y, columns=x).set_index("order")
-            save_df(z, single_test_df, j, 'Reflex', path)
+            save_df(z, single_test_df, j, 'Reflex', path, sub_id)
         else:
             continue
 
 
 def extract_pta(single_test_df, ls_columns_1,
-                ls_columns_2, x, path):
+                ls_columns_2, x, path, sub_id):
     """
     This function extracts every single pure-tone audiometry test and send the
     results to be saved by the save_df function.
@@ -383,7 +363,9 @@ def extract_pta(single_test_df, ls_columns_1,
     -ls_columns_1: list of right ear test data column names
     -ls_columns_2: list of left ear test data column names
     -x: list of column names to use in the reconstructed, BIDS formated df
-    -path: path inside the results folder ([repo_root]/results/)
+    -path: path inside the subject's result folder
+           ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -431,13 +413,13 @@ def extract_pta(single_test_df, ls_columns_1,
 
         if len(y) > 0:
             z = pd.DataFrame(data=y, columns=x).set_index("order")
-            save_df(z, single_test_df, j, 'PTA', path)
+            save_df(z, single_test_df, j, 'PTA', path, sub_id)
         else:
             continue
 
 
 def extract_mtx(single_test_df, ls_columns_1,
-                ls_columns_2, x, path):
+                ls_columns_2, x, path, sub_id):
     """
     This function extracts every single matrix speech-in-noise perception test
     and send the results to be saved by the save_df function.
@@ -447,7 +429,9 @@ def extract_mtx(single_test_df, ls_columns_1,
     -ls_columns_1: list of right ear test data column names
     -ls_columns_2: list of left ear test data column names
     -x: list of column names to use in the reconstructed, BIDS formated df
-    -path: path inside the results folder ([repo_root]/results/)
+    -path: path inside the subject's result folder
+           ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -505,7 +489,7 @@ def extract_mtx(single_test_df, ls_columns_1,
 
         if len(y) > 0:
             z = pd.DataFrame(data=y, columns=x).set_index("order")
-            save_df(z, single_test_df, j, 'MTX', path)
+            save_df(z, single_test_df, j, 'MTX', path, sub_id)
         else:
             continue
 
