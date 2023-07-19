@@ -189,12 +189,12 @@ def master_run(data_path, result_path, var_json):
     x_growth = var_json["tsv_columns"]["x_growth"]
 
     # Specify the protocol conditions including OAE tests
-    condition_OAE = var_json["condition_OAE"]
+    #condition_OAE = var_json["condition_OAE"]
 
     # Specify the columns to be used for each test
     # -> Subject and session settings data
     columns_conditions = var_json["columns_conditions"]
-    
+
     # Specifiy the different tests used in those different protocol conditions
     ls_test = var_json["ls_test"]
 
@@ -202,7 +202,7 @@ def master_run(data_path, result_path, var_json):
     df = fetch_db(data_path)
     #print(df)
     auditory_test_path = os.path.join(data_path, "auditory_tests")
-    
+
     try:
         (oae_folder_path,
          oae_file_list,
@@ -432,15 +432,21 @@ def master_run(data_path, result_path, var_json):
         if skip_oae:
             pass
         else:
-            utils.extract_teoae(oae, data_oae_sub, oae_file_list,
-                                x_teoae, auditory_test_path,
-                                result_path, subject_folder_path, bids_id)
-            utils.extract_dpoae(oae, data_oae_sub, oae_file_list,
-                                x_dpoae, auditory_test_path,
-                                result_path, subject_folder_path, bids_id)
-            utils.extract_growth(oae, data_oae_sub, oae_file_list,
-                                 x_growth, auditory_test_path,
-                                 result_path, subject_folder_path, bids_id)
+            utils.extract_teoae(
+                oae, data_oae_sub, oae_file_list, x_teoae,
+                auditory_test_path, result_path, subject_folder_path,
+                #bids_id
+            )
+            utils.extract_dpoae(
+                oae, data_oae_sub, oae_file_list, x_dpoae,
+                auditory_test_path, result_path, subject_folder_path,
+                #bids_id
+            )
+            utils.extract_growth(
+                oae, data_oae_sub, oae_file_list, x_growth,
+                auditory_test_path, result_path, subject_folder_path,
+                #bids_id
+            )
 
         # .tsv session-level reference file creation
         column_reference = ["session_id", "session_name",
