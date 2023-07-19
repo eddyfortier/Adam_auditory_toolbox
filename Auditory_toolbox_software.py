@@ -88,7 +88,9 @@ while loop_value:
                                 var_json = json.load(origin)
                             origin.close()
 
-                            formater.master_run("data", "results", var_json)
+                            formater.master_run(
+                                "data", "results", var_json, "master_script"
+                            )
                             print("\n")
 
                     # Test Dummy

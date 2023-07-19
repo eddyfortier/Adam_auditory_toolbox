@@ -41,7 +41,7 @@ utf = "UTF-8-SIG"
 #           "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"]
 
 
-def fetch_db(data_path):
+def fetch_db(data_path, method):
     """This function retrieves a database to work on.
     INPUTS:
     -data_path: path to the [repo_root]/data/ folder
@@ -49,7 +49,7 @@ def fetch_db(data_path):
     -returns a dataframe containing the database to use
     """
 
-    df = common.retrieve_db(data_path, "standalone")
+    df = common.retrieve_db(data_path, method)
 
     # Manage the empty boxes
     df.fillna(value='n/a', inplace=True)
@@ -159,13 +159,21 @@ def create_folder_session(subject, session_count, parent_path):
     return ls_ses, children_path
 
 
-def master_run(data_path, result_path, var_json):
+def master_run(data_path, result_path, var_json, method="standalone"):
     """
     This is the master function that activates the others.
     INPUTS:
     -data_path: path to the data folder ([repo_root]/data/)
     -result_path: path to the results folder ([repo_root]/results/)
     -var_json: frequent-variables dictionary
+    -method: method used to activate this function.
+                 The valid methods are:
+                    -"master_script": the Adam_auditory_toolbox.py script
+                                      activates this function.
+                    -"standalone": one of the scripts in the src/ folder is
+                                   activated as a standalone script and is
+                                   using this fonction.
+                                       -> DEFAULT VALUE
     OUTPUTS:
     -NO specific return to the script (highest function level)
     -prints some feedback to the user in the terminal
@@ -199,7 +207,7 @@ def master_run(data_path, result_path, var_json):
     ls_test = var_json["ls_test"]
 
     # retrieve a database
-    df = fetch_db(data_path)
+    df = fetch_db(data_path, method)
     #print(df)
     auditory_test_path = os.path.join(data_path, "auditory_tests")
 
@@ -581,7 +589,7 @@ if __name__ == "__main__":
     data_path = os.path.join(root_path, var_json["path_var"]["data"])
     result_path = os.path.join(root_path, var_json["path_var"]["result"])
 
-    master_run(data_path, result_path, var_json)
+    master_run(data_path, result_path, var_json, "standalone")
     print("\n")
 
 

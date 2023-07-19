@@ -1,5 +1,4 @@
 import os
-import openpyxl
 import pandas as pd
 # import numpy as np
 # import matplotlib.cm as cm
@@ -22,13 +21,17 @@ another script:
     - BIDS_formater.py
 """
 
+
 if __name__ == "__main__":
-    print(color.Fore.RED
-          + ("ERROR: This script is not designed to be used as a "
-             "standalone script."))
+    print(
+        color.Fore.RED
+        + ("ERROR: This script is not designed to be used as a "
+           "standalone script.")
+    )
+
 
 else:
-    def retrieve_db(data_path, method="master_script"):
+    def retrieve_db(data_path, method):
         """
         This function gives the user a choice on how to retrieve the database.
         Available options are:
@@ -43,9 +46,8 @@ else:
         -data_path: path to the [repo_root]/data folder
         -method: method used to activate this function.
                  The valid means are:
-                    -"master_script": -the Adam_auditory_toolbox.py script
-                                       activates this function.
-                                      -> DEFAULT VALUE
+                    -"master_script": the Adam_auditory_toolbox.py script
+                                      activates this function.
                     -"standalone": one of the scripts in the src/ folder is
                                    activated as a standalone script and is
                                    using this fonction.
@@ -67,16 +69,14 @@ else:
 
         prompt_options = ""
 
-        for i in range(0, len(ls_fct)):
-            prompt_options += ("\n " + str(i+1) + "-" + ls_fct[i])
+        for i, element_i in enumerate(ls_fct):
+            prompt_options += f"\n {str(i+1)}-{element_i}"
 
         if method == "master_script":
-            prompt_options += ("\n "
-                               + str(len(ls_fct)+1)
-                               + "-Return to the main menu\n"
-                              )
+            prompt_options += (f"\n {str(len(ls_fct)+1)}"
+                               "-Return to the main menu\n")
         elif method == "standalone":
-            prompt_options += ("\n")
+            prompt_options += f"\n {str(len(ls_fct)+1)}-Exit\n"
         else:
             print(color.Fore.RED
                   + (f"ERROR: The specified database retrieval method "
@@ -109,10 +109,11 @@ else:
                         raise RuntimeError("Return to the main menu")
                     
                     elif value == len(ls_fct) + 1 and method == "standalone":
-                        print(color.Fore.RED
-                              + ("ERROR: The provided value is not valid "
-                                 "(out of bound).\n"))
-                        continue
+                        #print(color.Fore.RED
+                        #      + ("ERROR: The provided value is not valid "
+                        #         "(out of bound).\n"))
+                        #continue
+                        exit()
 
                     # The encased section contains the subscript calls.
                     # If functionality are to be added, here is where to
@@ -142,17 +143,6 @@ else:
                                                         "/export?"
                                                         "format=csv&gid=")
                             df = pd.read_csv(url_csv, sep=',', na_filter=True)
-                            return df
-
-                        # MRI sessions design files generation functionalities
-                        elif (ls_fct[value - 1].count("test_database.xlsx")
-                              == 1):
-                            filename = os.path.join(data_path,
-                                                    "test_database.xlsx")
-                            df = pd.read_excel(
-                                filename, engine="openpyxl", na_filter=True
-                            )
-                            #print(df)
                             return df
 
                         # Test Dummy
