@@ -25,15 +25,10 @@ prompt_instruction = (
 
 prompt_options = ""
 
-for i in range(0, len(ls_fct)):
-    prompt_options += "\n "
-    prompt_options += str(i+1)
-    prompt_options += "-"
-    prompt_options += ls_fct[i]
+for i, element_i in enumerate(ls_fct):
+    prompt_options += f"\n {str(i+1)}-{element_i}"
 
-prompt_options += "\n "
-prompt_options += str(len(ls_fct) + 1)
-prompt_options += "-Exit\n"
+prompt_options += f"\n {str(len(ls_fct)+1)}-Exit\n"
 
 prompt_txt = prompt_instruction + prompt_options
 
