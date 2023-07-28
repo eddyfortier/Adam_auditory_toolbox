@@ -345,7 +345,7 @@ def master_run(data_path, result_path, var_json, method="standalone"):
 
         # Extraction of all the session for the subject
         data_sub = subject_extractor(df, i)
-        
+
         if skip_oae:
             pass
         else:
