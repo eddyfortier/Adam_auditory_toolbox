@@ -492,7 +492,7 @@ def extract_mtx(single_test_df, ls_columns_1,
 
 
 def extract_teoae(data_sub, data_oae_sub, oae_file_list,
-                  x_teoae, data_path, result_path):
+                  x_teoae, data_path, result_path, sub_id):
     """
     This function extracts every single transient-evoked otoacoustic emissions
     test and send the results to be saved by the save_df function.
@@ -506,7 +506,9 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
               df
     -data_path: path inside the auditory_tests data folder
                 ([repo_root]/data/auditory_tests/)
-    -result_path: path inside the results folder ([repo_root]/results/)
+    -result_path: path inside the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -558,9 +560,6 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
 
             else:
                 for m, element_m in enumerate(oae_file_list):
-                    print("element_m: ", element_m)
-                    print("oae_file_list[m]: ", oae_file_list[m])
-
                     if element_m.find("PostScan") != -1:
                         continue
 
@@ -581,7 +580,7 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
 
         if (teoae_R_file is None or teoae_L_file is None):
             print(color.Fore.RED
-                  + (f"ERROR: At least one of {subject}'s DP-growth csv "
+                  + (f"ERROR: At least one of {subject}'s TEOAE csv "
                      f"files for the {date} session ({condition}) "
                      f"is missing.\n"))
             continue
@@ -645,11 +644,11 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
             df_teoae = df_teoae.set_axis(x_teoae, axis=1, copy=False)
             df_teoae.set_index("order", inplace=True)
 
-            save_df(df_teoae, data_sub, j, 'TEOAE', result_path)
+            save_df(df_teoae, data_sub, j, 'TEOAE', result_path, sub_id)
 
 
 def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
-                  x_dpoae, data_path, result_path):
+                  x_dpoae, data_path, result_path, sub_id):
     """
     This function extracts every single distortion product otoacoustic
     emissions test and send the results to be saved by the save_df function.
@@ -663,7 +662,9 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
               df
     -data_path: path inside the auditory_tests data folder
                 ([repo_root]/data/auditory_tests/)
-    -result_path: path inside the results folder ([repo_root]/results/)
+    -result_path: path inside the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -825,7 +826,7 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
 
 
 def growth_prepost(data_sub, i, oae_file_list,
-                   x_growth, data_path, result_path):
+                   x_growth, data_path, result_path, sub_id):
     """
     This function extracts the conditions 3A (pre-scan) and 3B (post-scan)
     distortion product otoacoustic emissions' growth function tests and send
@@ -839,7 +840,9 @@ def growth_prepost(data_sub, i, oae_file_list,
                df
     -data_path: path inside the OAE test data folder
                 ([repo_root]/data/auditory_tests/OAE/)
-    -result_path: path inside the results folder ([repo_root]/results/)
+    -result_path: path inside the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -910,7 +913,6 @@ def growth_prepost(data_sub, i, oae_file_list,
         print(color.Fore.RED
               + (f"ERROR: At least one of {subject}'s DP-growth csv files "
                  f"for the {date} session ({condition}) is missing.\n"))
-        pass
 
     else:
         df_2k_L = pd.read_csv(os.path.join(data_path, g2k_L_file),
@@ -1003,11 +1005,11 @@ def growth_prepost(data_sub, i, oae_file_list,
                 print("ERROR: counter value out of bound")
 
             save_df(df_growth, data_sub, i,
-                    'DPGrowth', result_path, run=run)
+                    'DPGrowth', result_path, sub_id, run=run)
 
 
 def growth_others(data_sub, i, oae_file_list,
-                  x_growth, data_path, result_path):
+                  x_growth, data_path, result_path, sub_id):
     """
     This function extracts the baseline and condition 2 sessions' distortion
     product otoacoustic emissions' growth function tests and send the results
@@ -1021,7 +1023,9 @@ def growth_others(data_sub, i, oae_file_list,
                df
     -data_path: path inside the OAE test data folder
                 ([repo_root]/data/auditory_tests/OAE/)
-    -result_path: path inside the results folder ([repo_root]/results/)
+    -result_path: path inside the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the save_df function
@@ -1132,7 +1136,7 @@ def growth_others(data_sub, i, oae_file_list,
 
 
 def extract_growth(data_sub, data_oae_sub, oae_file_list,
-                   x_growth, data_path, result_path):
+                   x_growth, data_path, result_path, sub_id):
     """
     This function extracts every DP growth function OAE test and separate them
     according to the experimental condition in which they were acquired.
@@ -1147,7 +1151,9 @@ def extract_growth(data_sub, data_oae_sub, oae_file_list,
                df
     -data_path: path inside the auditory_tests data folder
                 ([repo_root]/data/auditory_tests/)
-    -result_path: path inside the results folder ([repo_root]/results/)
+    -result_path: path inside the subject's result folder
+                  ([repo_root]/results/BIDS_data/sub-XXXXXX/)
+    -sub_id: BIDS compliant subject ID
     OUTPUTS:
     -NO specific return to the script
     -activates the growth_prepost and growth_others functions
@@ -1155,7 +1161,8 @@ def extract_growth(data_sub, data_oae_sub, oae_file_list,
 
     data_path = os.path.join(data_path, "OAE")
 
-    no_oae = ["Condition 1A (right before the scan)",
+    no_oae = ["n/a",
+              "Condition 1A (right before the scan)",
               "Condition 1B (right after the scan)",
               "Supplementary PTA test (Baseline)",
               "Suppl. PTA test (right before the scan)",
@@ -1174,11 +1181,11 @@ def extract_growth(data_sub, data_oae_sub, oae_file_list,
 
         elif condition in just_4k:
             growth_others(data_sub, j, oae_file_list,
-                          x_growth, data_path, result_path)
+                          x_growth, data_path, result_path, sub_id)
 
         elif condition in prepost:
             growth_prepost(data_sub, j, oae_file_list,
-                           x_growth, data_path, result_path)
+                           x_growth, data_path, result_path, sub_id)
 
 
 if __name__ == "__main__":
