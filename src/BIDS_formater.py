@@ -224,8 +224,9 @@ def master_run(data_path, result_path, var_json, method="standalone"):
                   + (f"WARNING: The following path does not exist "
                      f"\"{oae_folder_path}\".\n"))
         else:
-            skip_oae = False
             raise
+    else:
+        skip_oae = False
 
     # Verifications:
     # - existence of the "results" folder
@@ -442,18 +443,21 @@ def master_run(data_path, result_path, var_json, method="standalone"):
         else:
             utils.extract_teoae(
                 oae, data_oae_sub, oae_file_list, x_teoae,
-                auditory_test_path, result_path, subject_folder_path,
-                #bids_id
+                auditory_test_path,
+                subject_folder_path,
+                bids_id
             )
             utils.extract_dpoae(
                 oae, data_oae_sub, oae_file_list, x_dpoae,
-                auditory_test_path, result_path, subject_folder_path,
-                #bids_id
+                auditory_test_path,
+                subject_folder_path,
+                bids_id
             )
             utils.extract_growth(
                 oae, data_oae_sub, oae_file_list, x_growth,
-                auditory_test_path, result_path, subject_folder_path,
-                #bids_id
+                auditory_test_path,
+                subject_folder_path,
+                bids_id
             )
 
         # .tsv session-level reference file creation
