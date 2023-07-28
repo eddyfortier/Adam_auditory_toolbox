@@ -237,7 +237,7 @@ def master_run(data_path, result_path, var_json, method="standalone"):
     utils.result_location(result_path)
 
     parent_path = os.path.join(result_path, "BIDS_data")
-    
+
     # Add the .json sidecar files in the BIDS_data folder
     json_origin = os.path.join(result_path, "BIDS_sidecars_originals")
 
