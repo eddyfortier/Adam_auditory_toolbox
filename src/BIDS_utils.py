@@ -78,14 +78,12 @@ def result_location(result_path):
             print("The json sidecars for:\n - tymp\n - reflex\n"
                   " - PTA\n - MTX\n - TEOAE\n - DPOAE\n - DP Growth\n"
                   " - sessions\nare present.\n")
-            pass
         else:
             # run json_sidecar_generator.py
             print("At least one of the target files is absent: we will "
                   "create it (them) for you.\n")
             jsg.create_sidecars(result_path)
-            print("\n")
-            print("The json sidecars for:\n - tymp\n - reflex\n - PTA\n"
+            print("\nThe json sidecars for:\n - tymp\n - reflex\n - PTA\n"
                   " - MTX\n - TEOAE\n - DPOAE\n - DP Growth\n - sessions\n"
                   "were created in the [repo_root]/results/"
                   "BIDS_sidecars_originals/ folder.\n")
@@ -94,8 +92,7 @@ def result_location(result_path):
         print("The BIDS_sidecars_originals folder is absent: we will "
               "create it for you.\n")
         jsg.create_sidecars(result_path)
-        print("\n")
-        print("The json sidecars for:\n - tymp\n - reflex\n"
+        print("\nThe json sidecars for:\n - tymp\n - reflex\n"
               " - PTA\n - MTX\n - TEOAE\n - DPOAE\n - DP Growth\n"
               " - sessions\nwere created in the [repo_root]/results/"
               "BIDS_sidecars_originals folder.\n")
@@ -559,18 +556,19 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
                         pass
 
             else:
-                for m, element_m in enumerate(oae_file_list):
-                    if element_m.find("PostScan") != -1:
+                for m in enumerate(oae_file_list):
+                    print(m[1])
+                    if m[1].find("PostScan") != -1:
                         continue
 
-                    elif (element_m.startswith(subject) and
-                          element_m.find(date) != -1):
+                    elif (m[1].startswith(subject) and
+                          m[1].find(date) != -1):
 
-                        if element_m.endswith("TE_R.csv"):
-                            teoae_R_file = element_m
+                        if m[1].endswith("TE_R.csv"):
+                            teoae_R_file = m[1]
 
-                        elif element_m.endswith("TE_L.csv"):
-                            teoae_L_file = element_m
+                        elif m[1].endswith("TE_L.csv"):
+                            teoae_L_file = m[1]
 
                         else:
                             pass
@@ -694,16 +692,16 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
 
             if data_sub.iloc[j]["Protocol condition"] == post:
 
-                for k, element_k in enumerate(oae_file_list):
-                    if (element_k.startswith(subject)
-                            and element_k.find(date) != -1
-                            and element_k.find("PostScan") != -1):
+                for k in enumerate(oae_file_list):
+                    if (k[1].startswith(subject)
+                            and k[1].find(date) != -1
+                            and k[1].find("PostScan") != -1):
 
-                        if element_k.endswith("DPOAE6555_R.csv"):
-                            dpoae_R_file = element_k
+                        if k[1].endswith("DPOAE6555_R.csv"):
+                            dpoae_R_file = k[1]
 
-                        elif element_k.endswith("DPOAE6555_L.csv"):
-                            dpoae_L_file = element_k
+                        elif k[1].endswith("DPOAE6555_L.csv"):
+                            dpoae_L_file = k[1]
 
                         else:
                             pass
@@ -712,18 +710,18 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
                         pass
 
             else:
-                for m, element_m in enumerate(oae_file_list):
-                    if element_m.find("PostScan") != -1:
+                for m in enumerate(oae_file_list):
+                    if m[1].find("PostScan") != -1:
                         continue
 
-                    elif (element_m.startswith(subject) and
-                          element_m.find(date) != -1):
+                    elif (m[1].startswith(subject) and
+                          m[1].find(date) != -1):
 
-                        if element_m.endswith("DPOAE6555_R.csv"):
-                            dpoae_R_file = element_m
+                        if m[1].endswith("DPOAE6555_R.csv"):
+                            dpoae_R_file = m[1]
 
-                        elif element_m.endswith("DPOAE6555_L.csv"):
-                            dpoae_L_file = element_m
+                        elif m[1].endswith("DPOAE6555_L.csv"):
+                            dpoae_L_file = m[1]
 
                         else:
                             pass
@@ -822,7 +820,7 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
             df_dpoae = df_dpoae.set_axis(x_dpoae, axis=1, copy=False)
             df_dpoae.set_index("order", inplace=True)
 
-            save_df(df_dpoae, data_sub, j, 'DPOAE', result_path)
+            save_df(df_dpoae, data_sub, j, 'DPOAE', result_path, sub_id)
 
 
 def growth_prepost(data_sub, i, oae_file_list,
@@ -1038,18 +1036,19 @@ def growth_others(data_sub, i, oae_file_list,
     growth_R_file = None
     growth_L_file = None
 
-    for m in range(0, len(oae_file_list)):
-        if oae_file_list[m].find("PostScan") != -1:
+    for m in enumerate(oae_file_list):
+        print(m[1])
+        if m[1].find("PostScan") != -1:
             pass
 
-        elif (oae_file_list[m].startswith(subject) and
-              oae_file_list[m].find(date) != -1):
+        elif (m[1].startswith(subject) and
+              m[1].find(date) != -1):
 
-            if oae_file_list[m].endswith("4000_R.csv"):
-                growth_R_file = oae_file_list[m]
+            if m[1].endswith("4000_R.csv"):
+                growth_R_file = m[1]
 
-            elif oae_file_list[m].endswith("4000_L.csv"):
-                growth_L_file = oae_file_list[m]
+            elif m[1].endswith("4000_L.csv"):
+                growth_L_file = m[1]
 
             else:
                 pass
@@ -1132,7 +1131,7 @@ def growth_others(data_sub, i, oae_file_list,
         df_growth = df_growth.set_axis(x_growth, axis=1, copy=False)
         df_growth.set_index("order", inplace=True)
 
-        save_df(df_growth, data_sub, i, 'DPGrowth', result_path)
+        save_df(df_growth, data_sub, i, 'DPGrowth', result_path, sub_id)
 
 
 def extract_growth(data_sub, data_oae_sub, oae_file_list,
