@@ -181,7 +181,7 @@ def add_postscan_oae(data_sub, var_json):
     OUTPUTS:
     -
     """
-    
+
     k = 0
     while k < len(data_sub):
 
@@ -232,7 +232,7 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
     -oae_tests_df: dataframe with the OAE test files' names
     -var_json: frequent-variables dictionary
     -result_path: path inside the result folder ([repo_root]/results/)
-    -auditory_test_path: 
+    -auditory_test_path:
     -skip_oae: boolean specifiying if the OAE data should be processed
                depending on the type of experimental condition
     OUTPUTS:
