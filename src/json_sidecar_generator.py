@@ -83,8 +83,8 @@ lvl_scan = {"No Scan": "Session not linked to a scan session",
             "Anatomical": "Session linked to an anatomical MRI scan session",
             "Functional": "Session linked to a functional MRI scan session"}
 
-lvl_ses_test = {"X": "Test data available for this type of test",
-                "": "No test data available for this type of test"}
+lvl_ses_test = {"1": "Test data available for this type of test",
+                "0": "No test data available for this type of test"}
 
 ls_task = ["Tymp", "Reflex", "PTA",
            "MTX", "TEOAE", "DPOAE",
