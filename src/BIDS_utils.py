@@ -206,10 +206,9 @@ def save_df(data_tosave_df, single_test_df, index,
     ext = '.tsv'
 
     path = os.path.join(result_path, "ses-" + ses)
-    #print("path:", path)
+
     file_name = (sub + '_ses-' + ses + '_task-'
                  + test + '_run-' + run + "_beh")
-    #print("file_name:", file_name)
 
     data_tosave_df.to_csv(os.path.join(path, file_name + ext), sep='\t')
 
@@ -536,8 +535,6 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
             if data_sub.iloc[j]["Protocol condition"] == post:
 
                 for k, element_k in enumerate(oae_file_list):
-                    print("element_k: ", element_k)
-                    print("oae_file_list[k]: ", oae_file_list[k])
 
                     if (element_k.startswith(subject)
                             and element_k.find(date) != -1
@@ -557,7 +554,6 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
 
             else:
                 for m in enumerate(oae_file_list):
-                    print(m[1])
                     if m[1].find("PostScan") != -1:
                         continue
 
@@ -939,6 +935,8 @@ def growth_prepost(data_sub, i, oae_file_list,
                     a.at[c, b] = float(value_L)
 
         for d in range(0, len(ls_2df)):
+            print("ls_2df[d], DP-Growth prepost")
+            print(ls_2df[d])
 
             order_R = []
             order_L = []
@@ -1037,7 +1035,6 @@ def growth_others(data_sub, i, oae_file_list,
     growth_L_file = None
 
     for m in enumerate(oae_file_list):
-        print(m[1])
         if m[1].find("PostScan") != -1:
             pass
 
