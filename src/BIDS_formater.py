@@ -30,17 +30,6 @@ script, Adam_auditory_toolbox.py.
 utf = "UTF-8-SIG"
 
 
-# Specify the protocol conditions including OAE tests
-#condition_OAE = ["Baseline",
-#                 "Condition 2 (2-7 days post-scan)",
-#                 "Condition 3A (OAEs right before the scan)",
-#                 "Condition 3B (OAEs right after the scan)"]
-
-# Specifiy the different tests used in those different protocol conditions
-#ls_test = ["Tymp", "Reflex", "PTA", "MTX", "TEOAE", "DPOAE",
-#           "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"]
-
-
 def fetch_db(data_path, method):
     """This function retrieves a database to work on.
     INPUTS:
@@ -75,9 +64,6 @@ def fetch_oae_data(data_path):
     try:
         ls_file = os.listdir(path)
     except FileNotFoundError as error:
-        #print(error, "\n")
-        #print(error.args[1], "\n")
-        #print(type(error.args[1]), "\n", "\n")
         if error.args[0] == 2 and error.args[1] == "No such file or directory":
             raise RuntimeError("The OAE data folder is missing.")
         else:
@@ -96,6 +82,37 @@ def fetch_oae_data(data_path):
                                "Ear"])
 
     return path, ls_file, df
+
+
+def copy_json(parent_path, json_origin):
+    """
+    This function makes copies of the original json files in the created
+    database.
+    INPUTS:
+    -parent_path: path to the destination folder
+                  ([repo_root]/results/BIDS_data/)
+    -json_origin: path to the original json files location
+                  ([repo_root]/results/BIDS_sidecars_originals/)
+    OUTPUTS:
+    -NO specific return to the script
+    """
+
+    copyfile(os.path.join(json_origin, "sessions.json"),
+             os.path.join(parent_path, "sessions.json"))
+    copyfile(os.path.join(json_origin, "task-Tymp_beh.json"),
+             os.path.join(parent_path, "task-Tymp_beh.json"))
+    copyfile(os.path.join(json_origin, "task-Reflex_beh.json"),
+             os.path.join(parent_path, "task-Reflex_beh.json"))
+    copyfile(os.path.join(json_origin, "task-PTA_beh.json"),
+             os.path.join(parent_path, "task-PTA_beh.json"))
+    copyfile(os.path.join(json_origin, "task-MTX_beh.json"),
+             os.path.join(parent_path, "task-MTX_beh.json"))
+    copyfile(os.path.join(json_origin, "task-TEOAE_beh.json"),
+             os.path.join(parent_path, "task-TEOAE_beh.json"))
+    copyfile(os.path.join(json_origin, "task-DPOAE_beh.json"),
+             os.path.join(parent_path, "task-DPOAE_beh.json"))
+    copyfile(os.path.join(json_origin, "task-DPGrowth_beh.json"),
+             os.path.join(parent_path, "task-DPGrowth_beh.json"))
 
 
 def subject_extractor(df, subject_ID):
@@ -130,8 +147,6 @@ def create_folder_session(subject, session_count, parent_path):
     -returns the list of the session folder names
     """
 
-    #print(parent_path)
-
     if subject.startswith("Sub"):
         sub_ID = subject.lstrip("Sub")
         children_path = os.path.join(parent_path, f"sub-{sub_ID}")
@@ -154,38 +169,86 @@ def create_folder_session(subject, session_count, parent_path):
             os.mkdir(os.path.join(children_path, f"ses-{j:02d}"))
             ls_ses.append(f"ses-{j:02d}")
 
-    #print(children_path)
-
     return ls_ses, children_path
 
 
-def master_run(data_path, result_path, var_json, method="standalone"):
+def add_postscan_oae(data_sub, var_json):
     """
-    This is the master function that activates the others.
+    This function
     INPUTS:
-    -data_path: path to the data folder ([repo_root]/data/)
-    -result_path: path to the results folder ([repo_root]/results/)
+    -data_sub:
     -var_json: frequent-variables dictionary
-    -method: method used to activate this function.
-                 The valid methods are:
-                    -"master_script": the Adam_auditory_toolbox.py script
-                                      activates this function.
-                    -"standalone": one of the scripts in the src/ folder is
-                                   activated as a standalone script and is
-                                   using this fonction.
-                                       -> DEFAULT VALUE
     OUTPUTS:
-    -NO specific return to the script (highest function level)
-    -prints some feedback to the user in the terminal
+    -
+    """
+    
+    k = 0
+    while k < len(data_sub):
+
+        data_sub.loc[k, "Session_ID"] = f"{k+1:02d}"
+
+        if (data_sub["Protocol condition"][k]
+                in var_json["OAE_only"]["exist_cond"]):
+            key_oae_only = data_sub["Protocol condition"][k]
+            txt_oae_only = var_json["OAE_only"]["cond_pair"][key_oae_only]
+
+            sub_df_A = data_sub.iloc[:k+1]
+            sub_df_B = data_sub.iloc[k+1:]
+
+            sub_df_C = data_sub.copy()
+            sub_df_C.drop(sub_df_C.index[k+1:], inplace=True)
+            sub_df_C.drop(sub_df_C.index[0:k], inplace=True)
+
+            sub_df_C.loc[k, "Protocol condition"] = txt_oae_only
+            sub_df_C.loc[k, "Session_ID"] = f"{k+2:02d}"
+
+            ls_columns = sub_df_C.columns.tolist()
+            index_tests = ls_columns.index("Tymp_RE")
+            del ls_columns[0:index_tests]
+
+            for m in ls_columns:
+                sub_df_C.loc[k, m] = "n/a"
+
+            data_sub = pd.concat([sub_df_A, sub_df_C, sub_df_B])
+            data_sub.reset_index(inplace=True, drop=True)
+
+            k += 1
+
+        else:
+            pass
+
+        k += 1
+
+    return data_sub
+
+
+def bidsify(df, oae_file_list, oae_tests_df, var_json,
+            result_path, auditory_test_path, skip_oae):
+    """
+    This function...
+    INPUTS:
+    -df: database in a pandas dataframe format
+    -oae_file_list:
+    -oae_tests_df: dataframe with the OAE test files' names
+    -var_json: frequent-variables dictionary
+    -result_path: path inside the result folder ([repo_root]/results/)
+    -auditory_test_path: 
+    -skip_oae: boolean specifiying if the OAE data should be processed
+               depending on the type of experimental condition
+    OUTPUTS:
+    -
     """
 
-    # Create a list of the subjects and a reference path for the results
-    subjects = var_json["subjects"]
+    # Create a list of the subjects
+    subjects = var_json["subjects"] ### OBSOLETE ###
+    #subjects = list(dict.fromkeys(df["Participant_ID"].tolist()))
 
-    # Create two lists of subject IDs to establish a concordence file between
-    # the original IDs and the bidsified IDs
-    ls_id_og = []
-    ls_id_bids = []
+    # Specify the columns to be used for each test
+    # -> Subject and session settings data
+    columns_conditions = var_json["columns_conditions"]
+
+    # Specifiy the different tests used in those different protocol conditions
+    ls_test = var_json["ls_test"]
 
     # Generate the column titles to be used in the tsv files
     x_tymp = var_json["tsv_columns"]["x_tymp"]
@@ -196,37 +259,10 @@ def master_run(data_path, result_path, var_json, method="standalone"):
     x_dpoae = var_json["tsv_columns"]["x_dpoae"]
     x_growth = var_json["tsv_columns"]["x_growth"]
 
-    # Specify the protocol conditions including OAE tests
-    #condition_OAE = var_json["condition_OAE"]
-
-    # Specify the columns to be used for each test
-    # -> Subject and session settings data
-    columns_conditions = var_json["columns_conditions"]
-
-    # Specifiy the different tests used in those different protocol conditions
-    ls_test = var_json["ls_test"]
-
-    # retrieve a database
-    df = fetch_db(data_path, method)
-    #print(df)
-    auditory_test_path = os.path.join(data_path, "auditory_tests")
-
-    try:
-        (oae_folder_path,
-         oae_file_list,
-         oae_tests_df) = fetch_oae_data(auditory_test_path)
-
-    except RuntimeError as error:
-        if error.args[0] == "The OAE data folder is missing.":
-            oae_folder_path = os.path.join(auditory_test_path, "OAE")
-            skip_oae = True
-            print(color.Fore.YELLOW
-                  + (f"WARNING: The following path does not exist "
-                     f"\"{oae_folder_path}\".\n"))
-        else:
-            raise
-    else:
-        skip_oae = False
+    # Create two lists of subject IDs to establish a concordence file between
+    # the original IDs and the bidsified IDs
+    ls_id_og = []
+    ls_id_bids = []
 
     # Verifications:
     # - existence of the "results" folder
@@ -240,23 +276,7 @@ def master_run(data_path, result_path, var_json, method="standalone"):
 
     # Add the .json sidecar files in the BIDS_data folder
     json_origin = os.path.join(result_path, "BIDS_sidecars_originals")
-
-    copyfile(os.path.join(json_origin, "sessions.json"),
-             os.path.join(parent_path, "sessions.json"))
-    copyfile(os.path.join(json_origin, "task-Tymp_beh.json"),
-             os.path.join(parent_path, "task-Tymp_beh.json"))
-    copyfile(os.path.join(json_origin, "task-Reflex_beh.json"),
-             os.path.join(parent_path, "task-Reflex_beh.json"))
-    copyfile(os.path.join(json_origin, "task-PTA_beh.json"),
-             os.path.join(parent_path, "task-PTA_beh.json"))
-    copyfile(os.path.join(json_origin, "task-MTX_beh.json"),
-             os.path.join(parent_path, "task-MTX_beh.json"))
-    copyfile(os.path.join(json_origin, "task-TEOAE_beh.json"),
-             os.path.join(parent_path, "task-TEOAE_beh.json"))
-    copyfile(os.path.join(json_origin, "task-DPOAE_beh.json"),
-             os.path.join(parent_path, "task-DPOAE_beh.json"))
-    copyfile(os.path.join(json_origin, "task-DPGrowth_beh.json"),
-             os.path.join(parent_path, "task-DPGrowth_beh.json"))
+    copy_json(parent_path, json_origin)
 
     # Initialize empty lists to be filled with the proper column titles
     # for each test
@@ -304,10 +324,7 @@ def master_run(data_path, result_path, var_json, method="standalone"):
             columns_MTX_L2.append(i)
 
     for i in subjects:
-        #print(i)
-
         ls_id_og.append(i)
-        #print(ls_id_og)
 
         # Check if the subject ID is BIDS compatible
         # If not, it modifies it to comply with BIDS standards
@@ -337,8 +354,6 @@ def master_run(data_path, result_path, var_json, method="standalone"):
         else:
             ls_id_bids.append(bids_id)
 
-        #print(ls_id_bids)
-
         # Check if the subject-level folders exist
         # If not, create them
         common.create_folder_subjects(bids_id, parent_path)
@@ -354,42 +369,7 @@ def master_run(data_path, result_path, var_json, method="standalone"):
         data_sub.insert(loc=3, column="Session_ID", value=None)
 
         # Add a session line for the post-scan OAE condition
-        k = 0
-        while k < len(data_sub):
-
-            data_sub.loc[k, "Session_ID"] = f"{k+1:02d}"
-
-            if (data_sub["Protocol condition"][k]
-                    in var_json["OAE_only"]["exist_cond"]):
-                key_oae_only = data_sub["Protocol condition"][k]
-                txt_oae_only = var_json["OAE_only"]["cond_pair"][key_oae_only]
-
-                sub_df_A = data_sub.iloc[:k+1]
-                sub_df_B = data_sub.iloc[k+1:]
-
-                sub_df_C = data_sub.copy()
-                sub_df_C.drop(sub_df_C.index[k+1:], inplace=True)
-                sub_df_C.drop(sub_df_C.index[0:k], inplace=True)
-
-                sub_df_C.loc[k, "Protocol condition"] = txt_oae_only
-                sub_df_C.loc[k, "Session_ID"] = f"{k+2:02d}"
-
-                ls_columns = sub_df_C.columns.tolist()
-                index_tests = ls_columns.index("Tymp_RE")
-                del ls_columns[0:index_tests]
-
-                for m in ls_columns:
-                    sub_df_C.loc[k, m] = "n/a"
-
-                data_sub = pd.concat([sub_df_A, sub_df_C, sub_df_B])
-                data_sub.reset_index(inplace=True, drop=True)
-
-                k += 1
-
-            else:
-                pass
-
-            k += 1
+        data_sub = add_postscan_oae(data_sub, var_json)
 
         # Creation of a folder for each session
         ls_ses, subject_folder_path = create_folder_session(bids_id,
@@ -411,9 +391,6 @@ def master_run(data_path, result_path, var_json, method="standalone"):
                                       columns_MTX)
         oae = data_sub[columns_conditions]
 
-        #print(columns_PTA)
-        #print(pta)
-
         # Replace PTA values "130" with "No response"
         for n in columns_PTA:
             for p in range(0, len(pta)):
@@ -421,8 +398,6 @@ def master_run(data_path, result_path, var_json, method="standalone"):
                     pta.loc[p, n] = "No response"
                 else:
                     pass
-
-        #print(pta)
 
         # Dataframe reconstruction
         utils.extract_tymp(tymp, columns_tymp_R,
@@ -504,49 +479,49 @@ def master_run(data_path, result_path, var_json, method="standalone"):
             ls_data = utils.retrieve_tests(subject_folder_path, ls_ses[a])
 
             if "Tymp" in ls_data:
-                ref.at[a, "Tymp"] = "X"
+                ref.at[a, "Tymp"] = "1"
             else:
-                ref.at[a, "Tymp"] = ""
+                ref.at[a, "Tymp"] = "0"
 
             if "Reflex" in ls_data:
-                ref.at[a, "Reflex"] = "X"
+                ref.at[a, "Reflex"] = "1"
             else:
-                ref.at[a, "Reflex"] = ""
+                ref.at[a, "Reflex"] = "0"
 
             if "PTA" in ls_data:
-                ref.at[a, "PTA"] = "X"
+                ref.at[a, "PTA"] = "1"
             else:
-                ref.at[a, "PTA"] = ""
+                ref.at[a, "PTA"] = "0"
 
             if "MTX" in ls_data:
-                ref.at[a, "MTX"] = "X"
+                ref.at[a, "MTX"] = "1"
             else:
-                ref.at[a, "MTX"] = ""
+                ref.at[a, "MTX"] = "0"
 
             if "TEOAE" in ls_data:
-                ref.at[a, "TEOAE"] = "X"
+                ref.at[a, "TEOAE"] = "1"
             else:
-                ref.at[a, "TEOAE"] = ""
+                ref.at[a, "TEOAE"] = "0"
 
             if "DPOAE" in ls_data:
-                ref.at[a, "DPOAE"] = "X"
+                ref.at[a, "DPOAE"] = "1"
             else:
-                ref.at[a, "DPOAE"] = ""
+                ref.at[a, "DPOAE"] = "0"
 
             if "Growth_2" in ls_data:
-                ref.at[a, "DPGrowth_2kHz"] = "X"
+                ref.at[a, "DPGrowth_2kHz"] = "1"
             else:
-                ref.at[a, "DPGrowth_2kHz"] = ""
+                ref.at[a, "DPGrowth_2kHz"] = "0"
 
             if "Growth_4" in ls_data:
-                ref.at[a, "DPGrowth_4kHz"] = "X"
+                ref.at[a, "DPGrowth_4kHz"] = "1"
             else:
-                ref.at[a, "DPGrowth_4kHz"] = ""
+                ref.at[a, "DPGrowth_4kHz"] = "0"
 
             if "Growth_6" in ls_data:
-                ref.at[a, "DPGrowth_6kHz"] = "X"
+                ref.at[a, "DPGrowth_6kHz"] = "1"
             else:
-                ref.at[a, "DPGrowth_6kHz"] = ""
+                ref.at[a, "DPGrowth_6kHz"] = "0"
 
         ref.set_index("session_id", inplace=True)
 
@@ -562,11 +537,11 @@ def master_run(data_path, result_path, var_json, method="standalone"):
     dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
 
     df_id_match = pd.DataFrame(dict_id_match)
-    #print(df_id_match)
+
     id_match_save_path = os.path.join(parent_path,
                                       "subject_ID_concordance.tsv")
-    #print(id_match_save_path)
-    df_id_match.to_csv(id_match_save_path, sep="\t")
+
+    df_id_match.to_csv(id_match_save_path, sep="\t",)
 
     # This code section is present if, for any reason, the .tsv files are not
     # properly saved. You will first need to activate the "import glob" line
@@ -580,6 +555,55 @@ def master_run(data_path, result_path, var_json, method="standalone"):
     # for path in file_list:
     #     new_path = os.path.splitext(path)[0]+".tsv"
     #     os.system(f"mv {path} {new_path}")
+
+
+def master_run(data_path, result_path, var_json, method="standalone"):
+    """
+    This is the master function that activates the others.
+    INPUTS:
+    -data_path: path to the data folder ([repo_root]/data/)
+    -result_path: path to the results folder ([repo_root]/results/)
+    -var_json: frequent-variables dictionary
+    -method: method used to activate this function.
+                 The valid methods are:
+                    -"master_script": the Adam_auditory_toolbox.py script
+                                      activates this function.
+                    -"standalone": one of the scripts in the src/ folder is
+                                   activated as a standalone script and is
+                                   using this fonction.
+                                       -> DEFAULT VALUE
+    OUTPUTS:
+    -NO specific return to the script (highest function level)
+    -prints some feedback to the user in the terminal
+    """
+
+    # Specify the protocol conditions including OAE tests
+    #condition_OAE = var_json["condition_OAE"]
+
+    # retrieve a database
+    df = fetch_db(data_path, method)
+
+    auditory_test_path = os.path.join(data_path, "auditory_tests")
+
+    try:
+        (oae_folder_path,
+         oae_file_list,
+         oae_tests_df) = fetch_oae_data(auditory_test_path)
+
+    except RuntimeError as error:
+        if error.args[0] == "The OAE data folder is missing.":
+            oae_folder_path = os.path.join(auditory_test_path, "OAE")
+            skip_oae = True
+            print(color.Fore.YELLOW
+                  + (f"WARNING: The following path does not exist "
+                     f"\"{oae_folder_path}\".\n"))
+        else:
+            raise
+    else:
+        skip_oae = False
+
+    bidsify(df, oae_file_list, oae_tests_df, var_json,
+            result_path, auditory_test_path, skip_oae)
 
 
 if __name__ == "__main__":
