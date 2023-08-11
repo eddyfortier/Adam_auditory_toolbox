@@ -97,10 +97,10 @@ keys_tymp = ["order", "side", "type", "tpp", "ecv", "sc", "tw"]
 keys_reflex = ["order", "side",
                "500_hz", "1000_hz", "2000_hz", "4000_hz", 'noise']
 
-keys_pta = ["order", "side", "250_hz", "500_hz", "1000_hz",
-            "2000_hz", "3000_hz", "4000_hz", "6000_hz", "8000_hz",
-            "9000_hz", "10000_hz", "11200_hz", "12500_hz",
-            "14000_hz", "16000_hz", "18000_hz", "20000_hz"]
+keys_pta = ["order", "side", "125_hz", "250_hz", "500_hz", "750_hz",
+            "1000_hz", "1500_hz", "2000_hz", "3000_hz", "4000_hz",
+            "6000_hz", "8000_hz", "9000_hz", "10000_hz", "11200_hz",
+            "12500_hz", "14000_hz", "16000_hz", "18000_hz", "20000_hz"]
 
 keys_mtx = ["order", "language", "practice", "sp_bin_no_bin",
             "sp_l_no_bin", "sp_r_no_bin", "sp_l_no_l", "sp_r_no_r"]
