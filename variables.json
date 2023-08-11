@@ -4,7 +4,8 @@
     "result": "results"
   },
   "subjects": [
-    "TestID01", "iD test-0_02", "Sub-01", "sub-02", "Sub03", "sub04", "Sub-04"
+    "TestID01", "iD test-0_02", "Sub-01", "sub-02", "Sub03", "sub04",
+    "Troll001", "Frankenstein-9000", "Bond-007"
   ],
   "columns_conditions": [
     "Participant_ID", "Date", "Session_ID",
@@ -20,9 +21,9 @@
       "2000_hz", "4000_hz", "noise"
     ],
     "x_PTA": [
-      "order", "side", "250_hz", "500_hz", "1000_hz", "2000_hz",
-      "3000_hz", "4000_hz", "6000_hz", "8000_hz", "9000_hz",
-      "10000_hz", "11200_hz", "12500_hz", "14000_hz", "16000_hz",
+      "order", "side", "125_hz", "250_hz", "500_hz", "750_hz", "1000_hz",
+      "1500_hz", "2000_hz", "3000_hz", "4000_hz", "6000_hz", "8000_hz",
+      "9000_hz", "10000_hz", "11200_hz", "12500_hz", "14000_hz", "16000_hz",
       "18000_hz", "20000_hz"
     ],
     "x_MTX": [
