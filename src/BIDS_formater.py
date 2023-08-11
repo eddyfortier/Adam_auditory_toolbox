@@ -222,6 +222,331 @@ def add_postscan_oae(data_sub, var_json):
     return data_sub
 
 
+def initialize_column_titles(df):
+    """
+    This function...
+    INPUTS:
+    -df:
+    OUTPUTS:
+    -returns a dictionary containing the database's column titles relevant
+     for each of the auditory test types
+    """
+    
+    column_titles = {
+        "columns_tymp": [],
+        "columns_tymp_R": [],
+        "columns_tymp_L": [],
+        "columns_reflex": [],
+        "columns_reflex_R": [],
+        "columns_reflex_L": [],
+        "columns_PTA": [],
+        "columns_PTA_R": [],
+        "columns_PTA_L": [],
+        "columns_MTX": [],
+        "columns_MTX_L1": [],
+        "columns_MTX_L2": []
+    }
+
+    # Generate column title lists to be able to extract the data for each test
+    for i in df.columns:
+        if i.endswith("_RE") is True:
+            column_titles["columns_tymp"].append(i)
+            column_titles["columns_tymp_R"].append(i)
+        elif i.endswith("_LE") is True:
+            column_titles["columns_tymp"].append(i)
+            column_titles["columns_tymp_L"].append(i)
+        elif i.startswith("REFLEX_RE_") is True:
+            column_titles["columns_reflex"].append(i)
+            column_titles["columns_reflex_R"].append(i)
+        elif i.startswith("REFLEX_LE_") is True:
+            column_titles["columns_reflex"].append(i)
+            column_titles["columns_reflex_L"].append(i)
+        elif i.startswith("RE_") is True:
+            column_titles["columns_PTA"].append(i)
+            column_titles["columns_PTA_R"].append(i)
+        elif i.startswith("LE_") is True:
+            column_titles["columns_PTA"].append(i)
+            column_titles["columns_PTA_L"].append(i)
+        elif i.startswith("MTX1") is True:
+            column_titles["columns_MTX"].append(i)
+            column_titles["columns_MTX_L1"].append(i)
+        elif i.startswith("MTX2") is True:
+            column_titles["columns_MTX"].append(i)
+            column_titles["columns_MTX_L2"].append(i)
+
+    return column_titles
+
+
+def bids_id_verifier(bids_id, ls_id_bids):
+    """
+    This function...
+    INPUTS:
+    -bids_id: bidsified version of the currently processed subject's ID
+    -ls_id_bids: list of the bidsified subjects' IDs
+    OUTPUTS:
+    -If there are no ID conflicts, returns the updated list ls_bids_id.
+     Otherwise, it raises RuntimeError BIDSified ID conflict.
+    """
+
+    if bids_id in ls_id_bids:
+        index_bids_1 = ls_id_bids.index(bids_id)
+        index_bids_2 = len(ls_id_bids)
+        og_problem_1 = ls_id_og[index_bids_1]
+        og_problem_2 = ls_id_og[index_bids_2]
+
+        print(
+            color.Style.BRIGHT
+            + color.Fore.RED
+            + f"CRITICAL ERROR: Two participants IDs ({og_problem_1} and "
+              f"{og_problem_2} are generating a conflict once they are "
+              f"adapted to BIDS standard: they both become sub-{bids_id}. "
+              "\nPlease modify one of the previously mentioned IDs (both "
+              "in the dataset and the variables.json file) and run this "
+              "pipeline again.\n"
+        )
+
+        raise RuntimeError("BIDSified ID conflict")
+
+    else:
+        ls_id_bids.append(bids_id)
+        return ls_id_bids
+
+
+def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
+                      var_json, ls_id_og, ls_id_bids, parent_path,
+                      auditory_test_path, skip_oae):
+    """
+    This function...
+    INPUTS:
+    -i: currently processed subject's ID as defined in the variables.json
+        file or in the database
+    -df: database in a pandas dataframe format
+    -oae_tests_df: dataframe with the OAE test files' names
+    -oae_file_list:
+    -column_titles: dictionary containing the database's column titles relevant
+                    for each of the auditory test types
+    -var_json: frequent-variables dictionary
+    -ls_id_og: list of the subjects IDs as defined in the variables.json file
+               or in the database
+    -ls_id_bids: list of the bidsified subject IDs
+    -parent_path: path inside the BIDS_data folder
+                  ([repo_root]/results/BIDS_data/)
+    -auditory_test_path:
+    -skip_oae: boolean specifiying if the OAE data should be processed
+               depending on the type of experimental condition
+    OUTPUTS:
+    """
+
+    # Specifiy the different tests used in those different protocol conditions
+    ls_test = var_json["ls_test"]
+
+    # Generate the column titles to be used in the tsv files
+    x_tymp = var_json["tsv_columns"]["x_tymp"]
+    x_reflex = var_json["tsv_columns"]["x_reflex"]
+    x_PTA = var_json["tsv_columns"]["x_PTA"]
+    x_MTX = var_json["tsv_columns"]["x_MTX"]
+    x_teoae = var_json["tsv_columns"]["x_teoae"]
+    x_dpoae = var_json["tsv_columns"]["x_dpoae"]
+    x_growth = var_json["tsv_columns"]["x_growth"]
+
+    # Update the list of original (non-BIDSified) IDs
+    ls_id_og.append(i)
+
+    # Check if the subject ID is BIDS compatible
+    # If not, it modifies it to comply with BIDS standards
+    bids_id = common.bidsify_ID(i)
+
+    # Check if the new bidsified ID creates a conflict with another
+    # a previous bidsified ID
+    ls_id_bids = bids_id_verifier(bids_id, ls_id_bids)
+
+    # Check if the subject-level folders exist
+    # If not, create them
+    common.create_folder_subjects(bids_id, parent_path)
+
+    # Extraction of all the session for the subject
+    data_sub = subject_extractor(df, i)
+
+    if skip_oae:
+        pass
+    else:
+        data_oae_sub = subject_extractor(oae_tests_df, i)
+
+    data_sub.insert(loc=3, column="Session_ID", value=None)
+
+    # Add a session line for the post-scan OAE condition
+    data_sub = add_postscan_oae(data_sub, var_json)
+
+    # Creation of a folder for each session
+    ls_ses, subject_folder_path = create_folder_session(bids_id,
+                                                        len(data_sub),
+                                                        parent_path)
+
+    # Specify the columns to be used for each test
+    # -> Subject and session settings data
+    columns_conditions = var_json["columns_conditions"]
+
+    # Extraction of the test columns
+    tymp = utils.eliminate_columns(data_sub,
+                                   columns_conditions,
+                                   column_titles["columns_tymp"])
+    reflex = utils.eliminate_columns(data_sub,
+                                     columns_conditions,
+                                     column_titles["columns_reflex"])
+    pta = utils.eliminate_columns(data_sub,
+                                  columns_conditions,
+                                  column_titles["columns_PTA"])
+    mtx = utils.eliminate_columns(data_sub,
+                                  columns_conditions,
+                                  column_titles["columns_MTX"])
+    oae = data_sub[columns_conditions]
+
+    # Replace PTA values "130" with "No response"
+    for n in column_titles["columns_PTA"]:
+        for p in range(0, len(pta)):
+            if pta.loc[p, n] == 130:
+                pta.loc[p, n] = "No response"
+            else:
+                pass
+
+    # Dataframe reconstruction
+    utils.extract_tymp(tymp, column_titles["columns_tymp_R"],
+                       column_titles["columns_tymp_L"], x_tymp,
+                       subject_folder_path, bids_id)
+    utils.extract_reflex(reflex, column_titles["columns_reflex_R"],
+                         column_titles["columns_reflex_L"], x_reflex,
+                         subject_folder_path, bids_id)
+    utils.extract_pta(pta, column_titles["columns_PTA_R"],
+                      column_titles["columns_PTA_L"], x_PTA,
+                      subject_folder_path, bids_id)
+    utils.extract_mtx(mtx, column_titles["columns_MTX_L1"],
+                      column_titles["columns_MTX_L2"], x_MTX,
+                      subject_folder_path, bids_id)
+
+    if skip_oae:
+        pass
+    else:
+        utils.extract_teoae(
+            oae, data_oae_sub, oae_file_list, x_teoae,
+            auditory_test_path,
+            subject_folder_path,
+            bids_id
+        )
+        utils.extract_dpoae(
+            oae, data_oae_sub, oae_file_list, x_dpoae,
+            auditory_test_path,
+            subject_folder_path,
+            bids_id
+        )
+        utils.extract_growth(
+            oae, data_oae_sub, oae_file_list, x_growth,
+            auditory_test_path,
+            subject_folder_path,
+            bids_id
+        )
+
+    # .tsv session-level reference file creation
+    column_reference = ["session_id", "session_name",
+                        "condition", "delay", "scan_type"]
+
+    for w in ls_test:
+        column_reference.append(w)
+
+    index_reference = []
+
+    for x in range(0, len(ls_ses)):
+        index_reference.append(x)
+
+    ls_name = []
+    ls_condition = []
+    ls_delay = []
+    ls_scan = []
+
+    for y in range(0, len(data_sub)):
+
+        # Calculation of the number of days since Baseline #1
+        index_date_bsl = data_sub.index[(data_sub["Protocol name"]
+                                         == "Baseline 1")].tolist()
+        str_date_bsl = str(data_sub.at[index_date_bsl[0],
+                           "Date"]).split(" ")
+        date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
+        str_date_ses = str(data_sub.at[y, "Date"]).split(" ")
+        date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
+        value_delay = date_ses - date_bsl
+
+        ls_name.append(data_sub.at[y, "Protocol name"])
+        ls_condition.append(data_sub.at[y, "Protocol condition"])
+        ls_delay.append(value_delay.days)
+        ls_scan.append(data_sub.at[y, "Scan type"])
+
+    ref = pd.DataFrame(index=index_reference, columns=column_reference)
+
+    for a in ref.index:
+        ref.at[a, "session_id"] = ls_ses[a]
+        ref.at[a, "session_name"] = ls_name[a]
+        ref.at[a, "condition"] = ls_condition[a]
+        ref.at[a, "delay"] = ls_delay[a]
+        ref.at[a, "scan_type"] = ls_scan[a]
+
+        ls_data = utils.retrieve_tests(subject_folder_path, ls_ses[a])
+
+        if "Tymp" in ls_data:
+            ref.at[a, "Tymp"] = "1"
+        else:
+            ref.at[a, "Tymp"] = "0"
+
+        if "Reflex" in ls_data:
+            ref.at[a, "Reflex"] = "1"
+        else:
+            ref.at[a, "Reflex"] = "0"
+
+        if "PTA" in ls_data:
+            ref.at[a, "PTA"] = "1"
+        else:
+            ref.at[a, "PTA"] = "0"
+
+        if "MTX" in ls_data:
+            ref.at[a, "MTX"] = "1"
+        else:
+            ref.at[a, "MTX"] = "0"
+
+        if "TEOAE" in ls_data:
+            ref.at[a, "TEOAE"] = "1"
+        else:
+            ref.at[a, "TEOAE"] = "0"
+
+        if "DPOAE" in ls_data:
+            ref.at[a, "DPOAE"] = "1"
+        else:
+            ref.at[a, "DPOAE"] = "0"
+
+        if "Growth_2" in ls_data:
+            ref.at[a, "DPGrowth_2kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_2kHz"] = "0"
+
+        if "Growth_4" in ls_data:
+            ref.at[a, "DPGrowth_4kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_4kHz"] = "0"
+
+        if "Growth_6" in ls_data:
+            ref.at[a, "DPGrowth_6kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_6kHz"] = "0"
+
+    ref.set_index("session_id", inplace=True)
+
+    ref_name = i + "_sessions"
+    ref_save_path = os.path.join(subject_folder_path, ref_name + ".tsv")
+    ref.to_csv(ref_save_path, sep="\t")
+
+    print(
+        f"The tsv and json files for sub-{bids_id} ({i}) have been "
+        "created.\n"
+    )    
+
+
 def bidsify(df, oae_file_list, oae_tests_df, var_json,
             result_path, auditory_test_path, skip_oae):
     """
@@ -242,22 +567,6 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
     # Create a list of the subjects
     subjects = var_json["subjects"] ### OBSOLETE ###
     #subjects = list(dict.fromkeys(df["Participant_ID"].tolist()))
-
-    # Specify the columns to be used for each test
-    # -> Subject and session settings data
-    columns_conditions = var_json["columns_conditions"]
-
-    # Specifiy the different tests used in those different protocol conditions
-    ls_test = var_json["ls_test"]
-
-    # Generate the column titles to be used in the tsv files
-    x_tymp = var_json["tsv_columns"]["x_tymp"]
-    x_reflex = var_json["tsv_columns"]["x_reflex"]
-    x_PTA = var_json["tsv_columns"]["x_PTA"]
-    x_MTX = var_json["tsv_columns"]["x_MTX"]
-    x_teoae = var_json["tsv_columns"]["x_teoae"]
-    x_dpoae = var_json["tsv_columns"]["x_dpoae"]
-    x_growth = var_json["tsv_columns"]["x_growth"]
 
     # Create two lists of subject IDs to establish a concordence file between
     # the original IDs and the bidsified IDs
@@ -280,259 +589,17 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     # Initialize empty lists to be filled with the proper column titles
     # for each test
-    columns_tymp = []
-    columns_tymp_R = []
-    columns_tymp_L = []
+    column_titles = initialize_column_titles(df)
 
-    columns_reflex = []
-    columns_reflex_R = []
-    columns_reflex_L = []
-
-    columns_PTA = []
-    columns_PTA_R = []
-    columns_PTA_L = []
-
-    columns_MTX = []
-    columns_MTX_L1 = []
-    columns_MTX_L2 = []
-
-    # Generate column title lists to be able to extract the data for each test
-    for i in df.columns:
-        if i.endswith("_RE") is True:
-            columns_tymp.append(i)
-            columns_tymp_R.append(i)
-        elif i.endswith("_LE") is True:
-            columns_tymp.append(i)
-            columns_tymp_L.append(i)
-        elif i.startswith("REFLEX_RE_") is True:
-            columns_reflex.append(i)
-            columns_reflex_R.append(i)
-        elif i.startswith("REFLEX_LE_") is True:
-            columns_reflex.append(i)
-            columns_reflex_L.append(i)
-        elif i.startswith("RE_") is True:
-            columns_PTA.append(i)
-            columns_PTA_R.append(i)
-        elif i.startswith("LE_") is True:
-            columns_PTA.append(i)
-            columns_PTA_L.append(i)
-        elif i.startswith("MTX1") is True:
-            columns_MTX.append(i)
-            columns_MTX_L1.append(i)
-        elif i.startswith("MTX2") is True:
-            columns_MTX.append(i)
-            columns_MTX_L2.append(i)
-
+    # BIDSifiy each of the subjects' data
     for i in subjects:
-        ls_id_og.append(i)
+################################################################################
 
-        # Check if the subject ID is BIDS compatible
-        # If not, it modifies it to comply with BIDS standards
-        bids_id = common.bidsify_ID(i)
+        subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
+                          var_json, ls_id_og, ls_id_bids, parent_path,
+                          auditory_test_path, skip_oae)
 
-        # Check if the new bidsified ID creates a conflict with another
-        # a previous bidsified ID
-        if bids_id in ls_id_bids:
-            index_bids_1 = ls_id_bids.index(bids_id)
-            index_bids_2 = len(ls_id_bids)
-            og_problem_1 = ls_id_og[index_bids_1]
-            og_problem_2 = ls_id_og[index_bids_2]
-
-            print(
-                color.Style.BRIGHT
-                + color.Fore.RED
-                + f"CRITICAL ERROR: Two participants IDs ({og_problem_1} and "
-                  f"{og_problem_2} are generating a conflict once they are "
-                  f"adapted to BIDS standard: they both become sub-{bids_id}. "
-                  "\nPlease modify one of the previously mentioned IDs (both "
-                  "in the dataset and the variables.json file) and run this "
-                  "pipeline again.\n"
-            )
-
-            raise RuntimeError("BIDSified ID conflict")
-
-        else:
-            ls_id_bids.append(bids_id)
-
-        # Check if the subject-level folders exist
-        # If not, create them
-        common.create_folder_subjects(bids_id, parent_path)
-
-        # Extraction of all the session for the subject
-        data_sub = subject_extractor(df, i)
-
-        if skip_oae:
-            pass
-        else:
-            data_oae_sub = subject_extractor(oae_tests_df, i)
-
-        data_sub.insert(loc=3, column="Session_ID", value=None)
-
-        # Add a session line for the post-scan OAE condition
-        data_sub = add_postscan_oae(data_sub, var_json)
-
-        # Creation of a folder for each session
-        ls_ses, subject_folder_path = create_folder_session(bids_id,
-                                                            len(data_sub),
-                                                            parent_path)
-
-        # Extraction of the test columns
-        tymp = utils.eliminate_columns(data_sub,
-                                       columns_conditions,
-                                       columns_tymp)
-        reflex = utils.eliminate_columns(data_sub,
-                                         columns_conditions,
-                                         columns_reflex)
-        pta = utils.eliminate_columns(data_sub,
-                                      columns_conditions,
-                                      columns_PTA)
-        mtx = utils.eliminate_columns(data_sub,
-                                      columns_conditions,
-                                      columns_MTX)
-        oae = data_sub[columns_conditions]
-
-        # Replace PTA values "130" with "No response"
-        for n in columns_PTA:
-            for p in range(0, len(pta)):
-                if pta.loc[p, n] == 130:
-                    pta.loc[p, n] = "No response"
-                else:
-                    pass
-
-        # Dataframe reconstruction
-        utils.extract_tymp(tymp, columns_tymp_R,
-                           columns_tymp_L, x_tymp,
-                           subject_folder_path, bids_id)
-        utils.extract_reflex(reflex, columns_reflex_R,
-                             columns_reflex_L, x_reflex,
-                             subject_folder_path, bids_id)
-        utils.extract_pta(pta, columns_PTA_R,
-                          columns_PTA_L, x_PTA,
-                          subject_folder_path, bids_id)
-        utils.extract_mtx(mtx, columns_MTX_L1,
-                          columns_MTX_L2, x_MTX,
-                          subject_folder_path, bids_id)
-
-        if skip_oae:
-            pass
-        else:
-            utils.extract_teoae(
-                oae, data_oae_sub, oae_file_list, x_teoae,
-                auditory_test_path,
-                subject_folder_path,
-                bids_id
-            )
-            utils.extract_dpoae(
-                oae, data_oae_sub, oae_file_list, x_dpoae,
-                auditory_test_path,
-                subject_folder_path,
-                bids_id
-            )
-            utils.extract_growth(
-                oae, data_oae_sub, oae_file_list, x_growth,
-                auditory_test_path,
-                subject_folder_path,
-                bids_id
-            )
-
-        # .tsv session-level reference file creation
-        column_reference = ["session_id", "session_name",
-                            "condition", "delay", "scan_type"]
-
-        for w in ls_test:
-            column_reference.append(w)
-
-        index_reference = []
-        for x in range(0, len(ls_ses)):
-            index_reference.append(x)
-
-        ls_name = []
-        ls_condition = []
-        ls_delay = []
-        ls_scan = []
-        for y in range(0, len(data_sub)):
-
-            # Calculation of the number of days since Baseline #1
-            index_date_bsl = data_sub.index[(data_sub["Protocol name"]
-                                             == "Baseline 1")].tolist()
-            str_date_bsl = str(data_sub.at[index_date_bsl[0],
-                               "Date"]).split(" ")
-            date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
-            str_date_ses = str(data_sub.at[y, "Date"]).split(" ")
-            date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
-            value_delay = date_ses - date_bsl
-
-            ls_name.append(data_sub.at[y, "Protocol name"])
-            ls_condition.append(data_sub.at[y, "Protocol condition"])
-            ls_delay.append(value_delay.days)
-            ls_scan.append(data_sub.at[y, "Scan type"])
-
-        ref = pd.DataFrame(index=index_reference, columns=column_reference)
-
-        for a in ref.index:
-            ref.at[a, "session_id"] = ls_ses[a]
-            ref.at[a, "session_name"] = ls_name[a]
-            ref.at[a, "condition"] = ls_condition[a]
-            ref.at[a, "delay"] = ls_delay[a]
-            ref.at[a, "scan_type"] = ls_scan[a]
-
-            ls_data = utils.retrieve_tests(subject_folder_path, ls_ses[a])
-
-            if "Tymp" in ls_data:
-                ref.at[a, "Tymp"] = "1"
-            else:
-                ref.at[a, "Tymp"] = "0"
-
-            if "Reflex" in ls_data:
-                ref.at[a, "Reflex"] = "1"
-            else:
-                ref.at[a, "Reflex"] = "0"
-
-            if "PTA" in ls_data:
-                ref.at[a, "PTA"] = "1"
-            else:
-                ref.at[a, "PTA"] = "0"
-
-            if "MTX" in ls_data:
-                ref.at[a, "MTX"] = "1"
-            else:
-                ref.at[a, "MTX"] = "0"
-
-            if "TEOAE" in ls_data:
-                ref.at[a, "TEOAE"] = "1"
-            else:
-                ref.at[a, "TEOAE"] = "0"
-
-            if "DPOAE" in ls_data:
-                ref.at[a, "DPOAE"] = "1"
-            else:
-                ref.at[a, "DPOAE"] = "0"
-
-            if "Growth_2" in ls_data:
-                ref.at[a, "DPGrowth_2kHz"] = "1"
-            else:
-                ref.at[a, "DPGrowth_2kHz"] = "0"
-
-            if "Growth_4" in ls_data:
-                ref.at[a, "DPGrowth_4kHz"] = "1"
-            else:
-                ref.at[a, "DPGrowth_4kHz"] = "0"
-
-            if "Growth_6" in ls_data:
-                ref.at[a, "DPGrowth_6kHz"] = "1"
-            else:
-                ref.at[a, "DPGrowth_6kHz"] = "0"
-
-        ref.set_index("session_id", inplace=True)
-
-        ref_name = i + "_sessions"
-        ref_save_path = os.path.join(subject_folder_path, ref_name + ".tsv")
-        ref.to_csv(ref_save_path, sep="\t")
-
-        print(
-            f"The tsv and json files for sub-{bids_id} ({i}) have been "
-            "created.\n"
-        )
+################################################################################
 
     dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
 
