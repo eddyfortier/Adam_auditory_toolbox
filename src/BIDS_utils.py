@@ -487,6 +487,70 @@ def extract_mtx(single_test_df, ls_columns_1,
             continue
 
 
+def oae_file_search(i, subject, data_sub, date, oae_file_list):
+    """
+    This function...
+    INPUTS:
+    -i: iterator scanning through the data_sub dataframe
+    -subject:
+    -data_sub: df containing the subject-specific session informations (from
+               the db spreadsheet)
+    -date:
+    -oae_file_list: list of all the available OAE test filenames
+    -keywords: dictionary with string values for the left and right
+               ears' files
+    OUTPUTS:
+    -returns
+    """
+
+    post = "Condition 3B (OAEs right after the scan)"
+
+    oae_R_file = None
+    oae_L_file = None
+
+    if data_sub.iloc[i]["Protocol condition"] == post:
+
+        for k, element_k in enumerate(oae_file_list):
+
+            if (element_k.startswith(subject)
+                    and element_k.find(date) != -1
+                    and element_k.find("PostScan") != -1):
+
+                if element_k.endswith(keywords["R"]):
+                    oae_R_file = element_k
+
+                elif oae_file_list[k].endswith(keywords["L"]):
+                    oae_L_file = element_k
+
+                else:
+                    pass
+
+            else:
+                pass
+
+    else:
+        for m in enumerate(oae_file_list):
+            if m[1].find("PostScan") != -1:
+                continue
+
+            elif (m[1].startswith(subject) and
+                  m[1].find(date) != -1):
+
+                if m[1].endswith(keywords["R"]):
+                    oae_R_file = m[1]
+
+                elif m[1].endswith(keywords["L"]):
+                    oae_L_file = m[1]
+
+                else:
+                    pass
+
+            else:
+                pass
+
+    return oae_R_file, oae_L_file
+
+
 def extract_teoae(data_sub, data_oae_sub, oae_file_list,
                   x_teoae, data_path, result_path, sub_id):
     """
@@ -518,7 +582,7 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
               "Suppl. PTA test (right before the scan)",
               "Suppl. PTA test (right after the scan)"]
 
-    post = "Condition 3B (OAEs right after the scan)"
+    keywords = {"R": "TE_R.csv", "L": "TE_L.csv"}
 
     for j in range(0, len(data_sub)):
         subject = data_sub["Participant_ID"][j]
@@ -529,48 +593,17 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
             continue
 
         else:
-            teoae_R_file = None
-            teoae_L_file = None
 
-            if data_sub.iloc[j]["Protocol condition"] == post:
+            ###################################################################
 
-                for k, element_k in enumerate(oae_file_list):
+            teoae_R_file, teoae_L_file = oae_file_search(j,
+                                                         subject,
+                                                         data_sub,
+                                                         date,
+                                                         oae_file_list,
+                                                         keywords)
 
-                    if (element_k.startswith(subject)
-                            and element_k.find(date) != -1
-                            and element_k.find("PostScan") != -1):
-
-                        if element_k.endswith("TE_R.csv"):
-                            teoae_R_file = element_k
-
-                        elif oae_file_list[k].endswith("TE_L.csv"):
-                            teoae_L_file = element_k
-
-                        else:
-                            pass
-
-                    else:
-                        pass
-
-            else:
-                for m in enumerate(oae_file_list):
-                    if m[1].find("PostScan") != -1:
-                        continue
-
-                    elif (m[1].startswith(subject) and
-                          m[1].find(date) != -1):
-
-                        if m[1].endswith("TE_R.csv"):
-                            teoae_R_file = m[1]
-
-                        elif m[1].endswith("TE_L.csv"):
-                            teoae_L_file = m[1]
-
-                        else:
-                            pass
-
-                    else:
-                        pass
+            ###################################################################
 
         if (teoae_R_file is None or teoae_L_file is None):
             print(color.Fore.RED
@@ -672,7 +705,7 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
               "Suppl. PTA test (right before the scan)",
               "Suppl. PTA test (right after the scan)"]
 
-    post = "Condition 3B (OAEs right after the scan)"
+    keywords = {"R": "DPOAE6555_R.csv", "L": "DPOAE6555_L.csv"}
 
     for j in range(0, len(data_sub)):
         subject = data_sub["Participant_ID"][j]
@@ -683,47 +716,17 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
             continue
 
         else:
-            dpoae_R_file = None
-            dpoae_L_file = None
 
-            if data_sub.iloc[j]["Protocol condition"] == post:
+            ###################################################################
 
-                for k in enumerate(oae_file_list):
-                    if (k[1].startswith(subject)
-                            and k[1].find(date) != -1
-                            and k[1].find("PostScan") != -1):
+            dpoae_R_file, dpoae_L_file = oae_file_search(j,
+                                                         subject,
+                                                         data_sub,
+                                                         date,
+                                                         oae_file_list,
+                                                         keywords)
 
-                        if k[1].endswith("DPOAE6555_R.csv"):
-                            dpoae_R_file = k[1]
-
-                        elif k[1].endswith("DPOAE6555_L.csv"):
-                            dpoae_L_file = k[1]
-
-                        else:
-                            pass
-
-                    else:
-                        pass
-
-            else:
-                for m in enumerate(oae_file_list):
-                    if m[1].find("PostScan") != -1:
-                        continue
-
-                    elif (m[1].startswith(subject) and
-                          m[1].find(date) != -1):
-
-                        if m[1].endswith("DPOAE6555_R.csv"):
-                            dpoae_R_file = m[1]
-
-                        elif m[1].endswith("DPOAE6555_L.csv"):
-                            dpoae_L_file = m[1]
-
-                        else:
-                            pass
-
-                    else:
-                        pass
+            ###################################################################
 
         if (dpoae_R_file is None or dpoae_L_file is None):
             print(color.Fore.RED

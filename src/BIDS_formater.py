@@ -657,13 +657,13 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     # BIDSifiy each of the subjects' data
     for i in subjects:
-    ############################################################################
+        ########################################################################
 
         subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
                           var_json, ls_id_og, ls_id_bids, parent_path,
                           auditory_test_path, skip_oae)
 
-    ############################################################################
+        ########################################################################
 
     dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
 
