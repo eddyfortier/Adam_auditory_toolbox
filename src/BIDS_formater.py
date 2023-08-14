@@ -231,7 +231,7 @@ def initialize_column_titles(df):
     -returns a dictionary containing the database's column titles relevant
      for each of the auditory test types
     """
-    
+
     column_titles = {
         "columns_tymp": [],
         "columns_tymp_R": [],
@@ -277,11 +277,12 @@ def initialize_column_titles(df):
     return column_titles
 
 
-def bids_id_verifier(bids_id, ls_id_bids):
+def bids_id_verifier(bids_id, ls_id_og, ls_id_bids):
     """
     This function...
     INPUTS:
     -bids_id: bidsified version of the currently processed subject's ID
+    -ls_id_og: list of the original subjects' IDs
     -ls_id_bids: list of the bidsified subjects' IDs
     OUTPUTS:
     -If there are no ID conflicts, returns the updated list ls_bids_id.
@@ -310,6 +311,127 @@ def bids_id_verifier(bids_id, ls_id_bids):
     else:
         ls_id_bids.append(bids_id)
         return ls_id_bids
+
+
+def replace_130(pta, column_titles):
+    """
+    This function...
+    INPUTS:
+    -pta:
+    -column_titles:
+    OUTPUTS:
+    """
+
+    for n in column_titles["columns_PTA"]:
+        for p in range(0, len(pta)):
+            if pta.loc[p, n] == 130:
+                pta.loc[p, n] = "No response"
+            else:
+                pass
+
+    return pta
+
+
+def delay_baseline(i, data_sub):
+    """
+    This function calculates the delay (in days) since the currently
+    processed test session and the session marked as the first baseline.
+    INPUTS:
+    -i: counter value to indicate the index to access in the data_sub
+        dataframe
+    -data_sub:
+    OUTPUTS:
+    -returns a number of days (string format) between two sessions
+    """
+
+    index_date_bsl = data_sub.index[(data_sub["Protocol name"]
+                                     == "Baseline 1")].tolist()
+    str_date_bsl = str(data_sub.at[index_date_bsl[0],
+                       "Date"]).split(" ")
+    date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
+    str_date_ses = str(data_sub.at[i, "Date"]).split(" ")
+    date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
+    value_delay = date_ses - date_bsl
+
+    return value_delay
+
+
+def ref_df_generator(index_reference, column_reference,
+                     dict_of_ls, subject_folder_path):
+    """
+    This function...
+    INPUTS:
+    -index_reference:
+    -column_reference:
+    -dict_of_ls: dictionary containing lists of values classified per type
+                 of parameter
+    -subject_folder_path: path inside the subject's result folder
+                          ([repo_root]/results/BIDS_data/sub-XXXX/)
+    OUTPUTS:
+    -returns a dataframe ready to be saved as the sessions.tsv file for the
+     currently processed subject
+    """
+
+    ref = pd.DataFrame(index=index_reference, columns=column_reference)
+
+    for a in ref.index:
+        ref.at[a, "session_id"] = dict_of_ls["ls_ses"][a]
+        ref.at[a, "session_name"] = dict_of_ls["ls_name"][a]
+        ref.at[a, "condition"] = dict_of_ls["ls_condition"][a]
+        ref.at[a, "delay"] = dict_of_ls["ls_delay"][a]
+        ref.at[a, "scan_type"] = dict_of_ls["ls_scan"][a]
+
+        ls_data = utils.retrieve_tests(subject_folder_path,
+                                       dict_of_ls["ls_ses"][a])
+
+        if "Tymp" in ls_data:
+            ref.at[a, "Tymp"] = "1"
+        else:
+            ref.at[a, "Tymp"] = "0"
+
+        if "Reflex" in ls_data:
+            ref.at[a, "Reflex"] = "1"
+        else:
+            ref.at[a, "Reflex"] = "0"
+
+        if "PTA" in ls_data:
+            ref.at[a, "PTA"] = "1"
+        else:
+            ref.at[a, "PTA"] = "0"
+
+        if "MTX" in ls_data:
+            ref.at[a, "MTX"] = "1"
+        else:
+            ref.at[a, "MTX"] = "0"
+
+        if "TEOAE" in ls_data:
+            ref.at[a, "TEOAE"] = "1"
+        else:
+            ref.at[a, "TEOAE"] = "0"
+
+        if "DPOAE" in ls_data:
+            ref.at[a, "DPOAE"] = "1"
+        else:
+            ref.at[a, "DPOAE"] = "0"
+
+        if "Growth_2" in ls_data:
+            ref.at[a, "DPGrowth_2kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_2kHz"] = "0"
+
+        if "Growth_4" in ls_data:
+            ref.at[a, "DPGrowth_4kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_4kHz"] = "0"
+
+        if "Growth_6" in ls_data:
+            ref.at[a, "DPGrowth_6kHz"] = "1"
+        else:
+            ref.at[a, "DPGrowth_6kHz"] = "0"
+
+    ref.set_index("session_id", inplace=True)
+
+    return ref
 
 
 def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
@@ -358,7 +480,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
 
     # Check if the new bidsified ID creates a conflict with another
     # a previous bidsified ID
-    ls_id_bids = bids_id_verifier(bids_id, ls_id_bids)
+    ls_id_bids = bids_id_verifier(bids_id, ls_id_og, ls_id_bids)
 
     # Check if the subject-level folders exist
     # If not, create them
@@ -402,12 +524,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
     oae = data_sub[columns_conditions]
 
     # Replace PTA values "130" with "No response"
-    for n in column_titles["columns_PTA"]:
-        for p in range(0, len(pta)):
-            if pta.loc[p, n] == 130:
-                pta.loc[p, n] = "No response"
-            else:
-                pass
+    pta = replace_130(pta, column_titles)
 
     # Dataframe reconstruction
     utils.extract_tymp(tymp, column_titles["columns_tymp_R"],
@@ -465,77 +582,24 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
     for y in range(0, len(data_sub)):
 
         # Calculation of the number of days since Baseline #1
-        index_date_bsl = data_sub.index[(data_sub["Protocol name"]
-                                         == "Baseline 1")].tolist()
-        str_date_bsl = str(data_sub.at[index_date_bsl[0],
-                           "Date"]).split(" ")
-        date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
-        str_date_ses = str(data_sub.at[y, "Date"]).split(" ")
-        date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
-        value_delay = date_ses - date_bsl
+        value_delay = delay_baseline(y, data_sub)
 
         ls_name.append(data_sub.at[y, "Protocol name"])
         ls_condition.append(data_sub.at[y, "Protocol condition"])
         ls_delay.append(value_delay.days)
         ls_scan.append(data_sub.at[y, "Scan type"])
 
-    ref = pd.DataFrame(index=index_reference, columns=column_reference)
+    dict_of_ls = {
+        "ls_ses": ls_ses,
+        "ls_name": ls_name,
+        "ls_condition": ls_condition,
+        "ls_delay": ls_delay,
+        "ls_scan": ls_scan
+    }
 
-    for a in ref.index:
-        ref.at[a, "session_id"] = ls_ses[a]
-        ref.at[a, "session_name"] = ls_name[a]
-        ref.at[a, "condition"] = ls_condition[a]
-        ref.at[a, "delay"] = ls_delay[a]
-        ref.at[a, "scan_type"] = ls_scan[a]
-
-        ls_data = utils.retrieve_tests(subject_folder_path, ls_ses[a])
-
-        if "Tymp" in ls_data:
-            ref.at[a, "Tymp"] = "1"
-        else:
-            ref.at[a, "Tymp"] = "0"
-
-        if "Reflex" in ls_data:
-            ref.at[a, "Reflex"] = "1"
-        else:
-            ref.at[a, "Reflex"] = "0"
-
-        if "PTA" in ls_data:
-            ref.at[a, "PTA"] = "1"
-        else:
-            ref.at[a, "PTA"] = "0"
-
-        if "MTX" in ls_data:
-            ref.at[a, "MTX"] = "1"
-        else:
-            ref.at[a, "MTX"] = "0"
-
-        if "TEOAE" in ls_data:
-            ref.at[a, "TEOAE"] = "1"
-        else:
-            ref.at[a, "TEOAE"] = "0"
-
-        if "DPOAE" in ls_data:
-            ref.at[a, "DPOAE"] = "1"
-        else:
-            ref.at[a, "DPOAE"] = "0"
-
-        if "Growth_2" in ls_data:
-            ref.at[a, "DPGrowth_2kHz"] = "1"
-        else:
-            ref.at[a, "DPGrowth_2kHz"] = "0"
-
-        if "Growth_4" in ls_data:
-            ref.at[a, "DPGrowth_4kHz"] = "1"
-        else:
-            ref.at[a, "DPGrowth_4kHz"] = "0"
-
-        if "Growth_6" in ls_data:
-            ref.at[a, "DPGrowth_6kHz"] = "1"
-        else:
-            ref.at[a, "DPGrowth_6kHz"] = "0"
-
-    ref.set_index("session_id", inplace=True)
+    # sessions.tsv file construction
+    ref = ref_df_generator(index_reference, column_reference,
+                           dict_of_ls, subject_folder_path)
 
     ref_name = i + "_sessions"
     ref_save_path = os.path.join(subject_folder_path, ref_name + ".tsv")
@@ -544,7 +608,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
     print(
         f"The tsv and json files for sub-{bids_id} ({i}) have been "
         "created.\n"
-    )    
+    )
 
 
 def bidsify(df, oae_file_list, oae_tests_df, var_json,
@@ -593,13 +657,13 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     # BIDSifiy each of the subjects' data
     for i in subjects:
-################################################################################
+    ############################################################################
 
         subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
                           var_json, ls_id_og, ls_id_bids, parent_path,
                           auditory_test_path, skip_oae)
 
-################################################################################
+    ############################################################################
 
     dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
 
