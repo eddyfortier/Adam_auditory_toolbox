@@ -487,7 +487,7 @@ def extract_mtx(single_test_df, ls_columns_1,
             continue
 
 
-def oae_file_search(i, subject, data_sub, date, oae_file_list):
+def oae_file_search(i, subject, data_sub, date, oae_file_list, keywords):
     """
     This function...
     INPUTS:
