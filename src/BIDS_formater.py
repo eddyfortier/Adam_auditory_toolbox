@@ -315,17 +315,21 @@ def bids_id_verifier(bids_id, ls_id_og, ls_id_bids):
 
 def replace_130(pta, column_titles):
     """
-    This function...
+    This function replace the threshold values that equal 130 (arbitrary
+    numerical value used as a No Response indicator) with the
+    string No response.
     INPUTS:
     -pta:
     -column_titles:
     OUTPUTS:
+    -returns an updated version of the pta dataframe where the 130 threshold
+     values have been replace with the string No response.
     """
 
-    for n in column_titles["columns_PTA"]:
-        for p in range(0, len(pta)):
-            if pta.loc[p, n] == 130:
-                pta.loc[p, n] = "No response"
+    for i in column_titles["columns_PTA"]:
+        for a in range(0, len(pta)):
+            if pta.loc[a, i] == 130:
+                pta.loc[a, i] = "No response"
             else:
                 pass
 
@@ -334,7 +338,7 @@ def replace_130(pta, column_titles):
 
 def delay_baseline(i, data_sub):
     """
-    This function calculates the delay (in days) since the currently
+    This function calculates the delay (in days) between the currently
     processed test session and the session marked as the first baseline.
     INPUTS:
     -i: counter value to indicate the index to access in the data_sub
@@ -349,8 +353,10 @@ def delay_baseline(i, data_sub):
     str_date_bsl = str(data_sub.at[index_date_bsl[0],
                        "Date"]).split(" ")
     date_bsl = date.strptime(str_date_bsl[0], "%Y-%m-%d")
+
     str_date_ses = str(data_sub.at[i, "Date"]).split(" ")
     date_ses = date.strptime(str_date_ses[0], "%Y-%m-%d")
+
     value_delay = date_ses - date_bsl
 
     return value_delay
@@ -614,7 +620,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
 def bidsify(df, oae_file_list, oae_tests_df, var_json,
             result_path, auditory_test_path, skip_oae):
     """
-    This function...
+    This function creates a BIDS compatible dataset
     INPUTS:
     -df: database in a pandas dataframe format
     -oae_file_list:
@@ -657,14 +663,11 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     # BIDSifiy each of the subjects' data
     for i in subjects:
-        ########################################################################
-
         subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
                           var_json, ls_id_og, ls_id_bids, parent_path,
                           auditory_test_path, skip_oae)
 
-        ########################################################################
-
+    # .tsv Original IDs - BIDSified IDs equivalence file generation
     dict_id_match = {"og_ID": ls_id_og, "BIDS_ID": ls_id_bids}
 
     df_id_match = pd.DataFrame(dict_id_match)
@@ -674,12 +677,12 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     df_id_match.to_csv(id_match_save_path, sep="\t",)
 
-    # This code section is present if, for any reason, the .tsv files are not
-    # properly saved. You will first need to activate the "import glob" line
-    # (line 3). It is then possible to replace the variable "ext"'s value in
-    # the save_df function (BIDS_utils.py) with ".csv" and rerun the script
-    # with this section to rename all the files with the correct ".tsv" file
-    # extension.
+    # The following lines of  code section is present if, for any reason, the
+    # .tsv files are not properly saved. You will first need to activate the
+    # "import glob" line (line 3). It is then possible to replace the
+    # variable "ext"'s value in the save_df function (BIDS_utils.py) with
+    # ".csv" and rerun the script with this section to rename all the files
+    # with the correct ".tsv" file extension.
 
     # file_list = glob.glob(os.path.join(parent_path, "sub-*/ses-*/*.csv"))
 
@@ -707,9 +710,6 @@ def master_run(data_path, result_path, var_json, method="standalone"):
     -NO specific return to the script (highest function level)
     -prints some feedback to the user in the terminal
     """
-
-    # Specify the protocol conditions including OAE tests
-    #condition_OAE = var_json["condition_OAE"]
 
     # retrieve a database
     df = fetch_db(data_path, method)
