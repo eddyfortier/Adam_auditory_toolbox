@@ -213,6 +213,70 @@ def save_df(data_tosave_df, single_test_df, index,
     data_tosave_df.to_csv(os.path.join(path, file_name + ext), sep='\t')
 
 
+def oae_file_search(i, subject, data_sub, date, oae_file_list, keywords):
+    """
+    This function...
+    INPUTS:
+    -i: iterator scanning through the data_sub dataframe
+    -subject:
+    -data_sub: df containing the subject-specific session informations (from
+               the db spreadsheet)
+    -date:
+    -oae_file_list: list of all the available OAE test filenames
+    -keywords: dictionary with string values for the left and right
+               ears' files
+    OUTPUTS:
+    -returns
+    """
+
+    post = "Condition 3B (OAEs right after the scan)"
+
+    oae_R_file = None
+    oae_L_file = None
+
+    if data_sub.iloc[i]["Protocol condition"] == post:
+
+        for k, element_k in enumerate(oae_file_list):
+
+            if (element_k.startswith(subject)
+                    and element_k.find(date) != -1
+                    and element_k.find("PostScan") != -1):
+
+                if element_k.endswith(keywords["R"]):
+                    oae_R_file = element_k
+
+                elif oae_file_list[k].endswith(keywords["L"]):
+                    oae_L_file = element_k
+
+                else:
+                    pass
+
+            else:
+                pass
+
+    else:
+        for m in enumerate(oae_file_list):
+            if m[1].find("PostScan") != -1:
+                continue
+
+            elif (m[1].startswith(subject) and
+                  m[1].find(date) != -1):
+
+                if m[1].endswith(keywords["R"]):
+                    oae_R_file = m[1]
+
+                elif m[1].endswith(keywords["L"]):
+                    oae_L_file = m[1]
+
+                else:
+                    pass
+
+            else:
+                pass
+
+    return oae_R_file, oae_L_file
+
+
 def extract_tymp(single_test_df, ls_columns_1,
                  ls_columns_2, x, path, sub_id):
     """
@@ -487,70 +551,6 @@ def extract_mtx(single_test_df, ls_columns_1,
             continue
 
 
-def oae_file_search(i, subject, data_sub, date, oae_file_list, keywords):
-    """
-    This function...
-    INPUTS:
-    -i: iterator scanning through the data_sub dataframe
-    -subject:
-    -data_sub: df containing the subject-specific session informations (from
-               the db spreadsheet)
-    -date:
-    -oae_file_list: list of all the available OAE test filenames
-    -keywords: dictionary with string values for the left and right
-               ears' files
-    OUTPUTS:
-    -returns
-    """
-
-    post = "Condition 3B (OAEs right after the scan)"
-
-    oae_R_file = None
-    oae_L_file = None
-
-    if data_sub.iloc[i]["Protocol condition"] == post:
-
-        for k, element_k in enumerate(oae_file_list):
-
-            if (element_k.startswith(subject)
-                    and element_k.find(date) != -1
-                    and element_k.find("PostScan") != -1):
-
-                if element_k.endswith(keywords["R"]):
-                    oae_R_file = element_k
-
-                elif oae_file_list[k].endswith(keywords["L"]):
-                    oae_L_file = element_k
-
-                else:
-                    pass
-
-            else:
-                pass
-
-    else:
-        for m in enumerate(oae_file_list):
-            if m[1].find("PostScan") != -1:
-                continue
-
-            elif (m[1].startswith(subject) and
-                  m[1].find(date) != -1):
-
-                if m[1].endswith(keywords["R"]):
-                    oae_R_file = m[1]
-
-                elif m[1].endswith(keywords["L"]):
-                    oae_L_file = m[1]
-
-                else:
-                    pass
-
-            else:
-                pass
-
-    return oae_R_file, oae_L_file
-
-
 def extract_teoae(data_sub, data_oae_sub, oae_file_list,
                   x_teoae, data_path, result_path, sub_id):
     """
@@ -593,17 +593,12 @@ def extract_teoae(data_sub, data_oae_sub, oae_file_list,
             continue
 
         else:
-
-            ###################################################################
-
             teoae_R_file, teoae_L_file = oae_file_search(j,
                                                          subject,
                                                          data_sub,
                                                          date,
                                                          oae_file_list,
                                                          keywords)
-
-            ###################################################################
 
         if (teoae_R_file is None or teoae_L_file is None):
             print(color.Fore.RED
@@ -716,17 +711,12 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
             continue
 
         else:
-
-            ###################################################################
-
             dpoae_R_file, dpoae_L_file = oae_file_search(j,
                                                          subject,
                                                          data_sub,
                                                          date,
                                                          oae_file_list,
                                                          keywords)
-
-            ###################################################################
 
         if (dpoae_R_file is None or dpoae_L_file is None):
             print(color.Fore.RED
@@ -822,6 +812,64 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
             save_df(df_dpoae, data_sub, j, 'DPOAE', result_path, sub_id)
 
 
+def prepost_growth_files(element, subject, date, prepost, dict_file_prepost):
+    """
+    This function...
+    INPUTS:
+    -element:
+    -subject: subject's ID
+    -date: test session date
+    -prepost:
+    -dict_file_prepost:
+    OUTPUTS:
+    -returns a dictionary with the different lists of file names generated by
+     this function
+    """
+
+    if element.find(prepost) == -1:
+        return dict_file_prepost
+
+    elif (element.startswith(subject) and
+          element.find(date) != -1 and
+          element.find(prepost) != -1):
+
+        if element.endswith("R.csv"):
+
+            if element.find("2000") != -1:
+                dict_file_prepost["2R"] = element
+
+            elif element.find("4000") != -1:
+                dict_file_prepost["4R"] = element
+
+            elif element.find("6000") != -1:
+                dict_file_prepost["6R"] = element
+
+            else:
+                pass
+
+        elif element.endswith("L.csv"):
+
+            if element.find("2000") != -1:
+                dict_file_prepost["2L"] = element
+
+            elif element.find("4000") != -1:
+                dict_file_prepost["4L"] = element
+
+            elif element.find("6000") != -1:
+                dict_file_prepost["6L"] = element
+
+            else:
+                pass
+
+        else:
+            pass
+
+    else:
+        pass
+
+    return dict_file_prepost
+
+
 def growth_prepost(data_sub, i, oae_file_list,
                    x_growth, data_path, result_path, sub_id):
     """
@@ -861,48 +909,23 @@ def growth_prepost(data_sub, i, oae_file_list,
     g4k_L_file = None
     g6k_L_file = None
 
+    dict_file_prepost = {
+        "2R": g2k_R_file, "4R": g4k_R_file, "6R": g6k_R_file,
+        "2L": g2k_L_file, "4L": g4k_L_file, "6L": g6k_L_file
+    }
+
     for n, element_n in enumerate(oae_file_list):
 
-        if element_n.find(prepost) == -1:
-            continue
+        ########################################################################
 
-        elif (element_n.startswith(subject) and
-              element_n.find(date) != -1 and
-              element_n.find(prepost) != -1):
+        dict_file_prepost = prepost_growth_files(element_n,
+                                                 subject,
+                                                 date, prepost,
+                                                 dict_file_prepost)
 
-            if element_n.endswith("R.csv"):
+        ########################################################################
 
-                if element_n.find("2000") != -1:
-                    g2k_R_file = element_n
-
-                elif element_n.find("4000") != -1:
-                    g4k_R_file = element_n
-
-                elif element_n.find("6000") != -1:
-                    g6k_R_file = element_n
-
-                else:
-                    pass
-
-            elif element_n.endswith("L.csv"):
-
-                if element_n.find("2000") != -1:
-                    g2k_L_file = element_n
-
-                elif element_n.find("4000") != -1:
-                    g4k_L_file = element_n
-
-                elif element_n.find("6000") != -1:
-                    g6k_L_file = element_n
-
-                else:
-                    pass
-
-            else:
-                pass
-
-        else:
-            pass
+    print(dict_file_prepost)
 
     if (g2k_R_file is None or g4k_R_file is None
             or g6k_R_file is None or g2k_L_file is None
