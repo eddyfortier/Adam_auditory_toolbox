@@ -533,18 +533,26 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
     pta = replace_130(pta, column_titles)
 
     # Dataframe reconstruction
-    utils.extract_tymp(tymp, column_titles["columns_tymp_R"],
-                       column_titles["columns_tymp_L"], x_tymp,
-                       subject_folder_path, bids_id)
-    utils.extract_reflex(reflex, column_titles["columns_reflex_R"],
-                         column_titles["columns_reflex_L"], x_reflex,
-                         subject_folder_path, bids_id)
-    utils.extract_pta(pta, column_titles["columns_PTA_R"],
-                      column_titles["columns_PTA_L"], x_PTA,
-                      subject_folder_path, bids_id)
-    utils.extract_mtx(mtx, column_titles["columns_MTX_L1"],
-                      column_titles["columns_MTX_L2"], x_MTX,
-                      subject_folder_path, bids_id)
+    utils.extract_tymp(
+        tymp, column_titles["columns_tymp_R"],
+        column_titles["columns_tymp_L"], x_tymp,
+        subject_folder_path, bids_id
+    )
+    utils.extract_reflex(
+        reflex, column_titles["columns_reflex_R"],
+        column_titles["columns_reflex_L"], x_reflex,
+        subject_folder_path, bids_id
+    )
+    utils.extract_pta(
+        pta, column_titles["columns_PTA_R"],
+        column_titles["columns_PTA_L"], x_PTA,
+        subject_folder_path, bids_id
+    )
+    utils.extract_mtx(
+        mtx, column_titles["columns_MTX_L1"],
+        column_titles["columns_MTX_L2"], x_MTX,
+        subject_folder_path, bids_id
+    )
 
     if skip_oae:
         pass
@@ -713,7 +721,6 @@ def master_run(data_path, result_path, var_json, method="standalone"):
 
     # retrieve a database
     df = fetch_db(data_path, method)
-
     auditory_test_path = os.path.join(data_path, "auditory_tests")
 
     try:
@@ -725,9 +732,13 @@ def master_run(data_path, result_path, var_json, method="standalone"):
         if error.args[0] == "The OAE data folder is missing.":
             oae_folder_path = os.path.join(auditory_test_path, "OAE")
             skip_oae = True
+            oae_file_list = None
+            oae_tests_df = None
             print(color.Fore.YELLOW
                   + (f"WARNING: The following path does not exist "
-                     f"\"{oae_folder_path}\".\n"))
+                     f"\"{oae_folder_path}\".\n"
+                     "\t   --> Therefore, the OAE tests' data will not be "
+                     "processed.\n"))
         else:
             raise
     else:
