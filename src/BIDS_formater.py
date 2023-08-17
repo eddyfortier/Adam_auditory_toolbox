@@ -685,9 +685,9 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
 
     df_id_match.to_csv(id_match_save_path, sep="\t",)
 
-    # The following lines of  code section is present if, for any reason, the
-    # .tsv files are not properly saved. You will first need to activate the
-    # "import glob" line (line 3). It is then possible to replace the
+    # The following lines of code are present if, for any reason, the
+    # .tsv files are not properly saved. You will first need to activate
+    # the "import glob" line (line 3). It is then possible to replace the
     # variable "ext"'s value in the save_df function (BIDS_utils.py) with
     # ".csv" and rerun the script with this section to rename all the files
     # with the correct ".tsv" file extension.
