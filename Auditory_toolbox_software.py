@@ -137,20 +137,3 @@ print(
     + color.Fore.YELLOW
     + "Thanks for using the Adam_auditory_toolbox.\n"
 )
-
-
-#if __name__ == "__main__":
-#    with open("variables.json", "r") as origin:
-#        var_json = json.load(origin)
-#    origin.close()
-
-#    # Path initializations
-#    data_path = var_json["path_var"]["data"]
-#    result_path = var_json["path_var"]["result"]
-
-#    # Show welcome message
-#    print(
-#        color.Style.BRIGHT
-#        + color.Fore.YELLOW
-#        + "\nWelcome to the Adam_auditory_toolbox.\n"
-#    )
