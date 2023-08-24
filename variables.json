@@ -3,10 +3,6 @@
     "data": "data",
     "result": "results"
   },
-  "subjects": [
-    "TestID01", "iD test-0_02", "Sub-01", "sub-02", "Sub03", "sub04",
-    "Troll001", "Frankenstein-9000", "Bond-007"
-  ],
   "columns_conditions": [
     "Participant_ID", "Date", "Session_ID",
     "Protocol name", "Protocol condition", "Scan type"
@@ -55,7 +51,9 @@
     "Condition 3B (OAEs right after the scan)",
     "Supplementary PTA test (Baseline)",
     "Suppl. PTA test (right before the scan)",
-    "Suppl. PTA test (right after the scan)"
+    "Suppl. PTA test (right after the scan)",
+    "Other condition #1",
+    "Other condition #2"
   ],  
   "condition_OAE": [
     "Baseline",
