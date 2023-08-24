@@ -56,16 +56,18 @@ else:
         """
 
         # Available functions list
-        ls_fct = ["Retrieve from a user supplied URL (Google Spreadsheet)",
-                  "Use the URL listed in the [repo_root]/data/URL.tsv file",
-                  ("Retrieve locally from the "
-                   "[repo_root]/data/test_database.xlsx file"),
-                 # "Dummy line",
-                 ]
+        ls_fct = [
+            "Retrieve from a user supplied URL (Google Spreadsheet)",
+            "Use the URL listed in the [repo_root]/data/URL.tsv file",
+            ("Retrieve locally from the "
+             "[repo_root]/data/test_database.xlsx file"),
+            # "Dummy line",
+        ]
 
         # Prompt text generation
-        prompt_instruction = ("Please specify the database retrieval "
-                              "method you want to use:")
+        prompt_instruction = (
+            "Please specify the database retrieval method you want to use:"
+        )
 
         prompt_options = ""
 
@@ -107,7 +109,7 @@ else:
                     # Loop breaks if the "Exit" option is selected
                     if value == len(ls_fct) + 1 and method == "master_script":
                         raise RuntimeError("Return to the main menu")
-                    
+
                     elif value == len(ls_fct) + 1 and method == "standalone":
                         #print(color.Fore.RED
                         #      + ("ERROR: The provided value is not valid "
@@ -177,8 +179,6 @@ else:
          the original was not compliant
         """
 
-        #print("ID before", ID)
-
         if ID.count(" ") != 0:
             ls_ID = ID.split(" ")
             ID = "".join(ls_ID)
@@ -205,8 +205,6 @@ else:
             ID = ID.lstrip("SUB")
         else:
             pass
-
-        #print("ID after", ID)
 
         return ID
 
@@ -276,10 +274,9 @@ else:
         for i in range(0, len(ls_baseline)):
             prompt_options += ("\n " + str(i+1) + "-" + ls_baseline[i])
 
-        prompt_options += ("\n "
-                           + str(len(ls_baseline)+1)
-                           + "-Return to the main menu\n"
-                          )
+        prompt_options += (
+            "\n " + str(len(ls_baseline)+1) + "-Return to the main menu\n"
+        )
 
         prompt_text = prompt_instruction + prompt_options
 

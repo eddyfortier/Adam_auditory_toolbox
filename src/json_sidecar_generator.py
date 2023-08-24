@@ -73,11 +73,11 @@ lvl_condition = {"Baseline": "Baseline: includes Tympanometry, Stapedial "
                                           "Stapedial reflex and Pure tone "
                                           "audiometry",
                  "Suppl. PTA A": "Hearing test session right before the "
-                                   "scan: includes Pure tone audiometry. May "
-                                   "also include Tympanometry and Stapedial "
-                                   "reflex",
+                                 "scan: includes Pure tone audiometry. May "
+                                 "also include Tympanometry and Stapedial "
+                                 "reflex",
                  "Suppl. PTA B": "Hearing test session right after the "
-                                   "scan: includes Pure tone audiometry"}
+                                 "scan: includes Pure tone audiometry"}
 
 lvl_scan = {"No Scan": "Session not linked to a scan session",
             "Anatomical": "Session linked to an anatomical MRI scan session",
@@ -674,11 +674,11 @@ def gen_df_sessions():
                           keys_ses[9]: "Otoacoustic emissions test using "
                                        "brief transient stimuli",
                           keys_ses[10]: "Otoacoustic emissions test using the "
-                                        "simultaneous presentation of two pure "
-                                        "tones (f1 and f2) with a f2/f1 ratio "
-                                        "of 1,22 and target intensities L1 = "
-                                        "65 dB SPL (for f1) and L2 = 55 dB "
-                                        "SPL (for f2).",
+                                        "simultaneous presentation of two "
+                                        "pure tones (f1 and f2) with a f2/f1 "
+                                        "ratio of 1,22 and target intensities "
+                                        "L1 = 65 dB SPL (for f1) and L2 = 55 "
+                                        "dB SPL (for f2).",
                           keys_ses[11]: "Otoacoustic emissions test using the "
                                         "simultaneous presentation of two "
                                         "pure tones (f1 and f2) with a f2/f1 "
