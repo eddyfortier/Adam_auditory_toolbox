@@ -1,5 +1,6 @@
-import pandas as pd
 import os
+import json
+import pandas as pd
 import colorama as color
 
 from src import json_sidecar_generator as jsg
