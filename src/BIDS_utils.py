@@ -82,7 +82,15 @@ def result_location(result_path):
             # run json_sidecar_generator.py
             print("At least one of the target files is absent: we will "
                   "create it (them) for you.\n")
-            jsg.create_sidecars(result_path)
+
+            var_json_path = os.path.join(result_path, "..", "variables.json")
+
+            with open(var_json_path, "r") as origin:
+                var_json = json.load(origin)
+            origin.close()
+
+            jsg.create_sidecars(result_path, var_json)
+
             print("\nThe json sidecars for:\n - tymp\n - reflex\n - PTA\n"
                   " - MTX\n - TEOAE\n - DPOAE\n - DP Growth\n - sessions\n"
                   "were created in the [repo_root]/results/"
@@ -91,7 +99,15 @@ def result_location(result_path):
         # run json_sidecar_generator.py
         print("The BIDS_sidecars_originals folder is absent: we will "
               "create it for you.\n")
-        jsg.create_sidecars(result_path)
+
+        var_json_path = os.path.join(result_path, "..", "variables.json")
+
+        with open(var_json_path, "r") as origin:
+            var_json = json.load(origin)
+        origin.close()
+
+        jsg.create_sidecars(result_path, var_json)
+
         print("\nThe json sidecars for:\n - tymp\n - reflex\n"
               " - PTA\n - MTX\n - TEOAE\n - DPOAE\n - DP Growth\n"
               " - sessions\nwere created in the [repo_root]/results/"
@@ -793,7 +809,7 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
 
             df_R["order"] = values_R["order"]
             df_R["side"] = values_R["side"]
-            df_R["freq1"] = calues_R["freq1"]
+            df_R["freq1"] = values_R["freq1"]
             df_R["snr"] = values_R["snr"]
             df_L["order"] = values_L["order"]
             df_L["side"] = values_L["side"]
@@ -1117,7 +1133,7 @@ def growth_others(data_sub, i, oae_file_list,
 
         df_R["order"] = values_R["order"]
         df_R["side"] = values_R["side"]
-        df_R["freq1"] = calues_R["freq1"]
+        df_R["freq1"] = values_R["freq1"]
         df_R["snr"] = values_R["snr"]
         df_L["order"] = values_L["order"]
         df_L["side"] = values_L["side"]
