@@ -277,6 +277,39 @@ def oae_file_search(i, subject, data_sub, date, oae_file_list, keywords):
     return oae_R_file, oae_L_file
 
 
+def dpoae_suppl_values(seq_number, ear, df):
+    """
+    This function generates a dictionary with values to include in the BIDS
+    file that are computed-from but not already present in the raw OAE test
+    file.
+    INPUTS:
+    -seq_number: rank in the order of presentation of the test condition
+                 (mostly related to which ear was tested in which order)
+    -ear: letter identifiying which ear the data is related to
+    -df: dataframe containing the raw OAE test data
+    OUTPUTS:
+    -returns a dictionary with the lists of values for each of the value
+     categories to be added
+    """
+
+    order = []
+    side = []
+    freq1 = []
+    snr = []
+
+    for i in range(0, len(df)):
+        order.append(1)
+        side.append("R")
+        freq1.append(df["Freq (Hz)"][i] / 1.22)
+        snr.append(
+            df["DP (dB)"][i] - df["Noise+2sd (dB)"][i]
+        )
+
+    oae_dict = {"order": order, "side": side, "freq1": freq1, "snr": snr}
+
+    return oae_dict
+
+
 def extract_tymp(single_test_df, ls_columns_1,
                  ls_columns_2, x, path, sub_id):
     """
@@ -755,38 +788,17 @@ def extract_dpoae(data_sub, data_oae_sub, oae_file_list,
                         value_R = str(df_R.iloc[d][c]).replace(",", ".")
                         df_R.at[d, c] = float(value_R)
 
-            order_R = []
-            order_L = []
-            side_R = []
-            side_L = []
-            freq1_R = []
-            freq1_L = []
-            snr_R = []
-            snr_L = []
+            values_R = dpoae_suppl_values(1, "R", df_R)
+            values_L = dpoae_suppl_values(2, "L", df_L)
 
-            for q in range(0, len(df_R)):
-                order_R.append(1)
-                side_R.append("R")
-                freq1_R.append(df_R["Freq (Hz)"][q] / 1.22)
-
-                snr_R.append(df_R["DP (dB)"][q]
-                             - df_R["Noise+2sd (dB)"][q])
-
-            for r in range(0, len(df_L)):
-                order_L.append(2)
-                side_L.append("L")
-                freq1_L.append(df_L["Freq (Hz)"][r] / 1.22)
-                snr_L.append(df_L["DP (dB)"][r]
-                             - df_L["Noise+2sd (dB)"][r])
-
-            df_R["order"] = order_R
-            df_R["side"] = side_R
-            df_R["freq1"] = freq1_R
-            df_R["snr"] = snr_R
-            df_L["order"] = order_L
-            df_L["side"] = side_L
-            df_L["freq1"] = freq1_L
-            df_L["snr"] = snr_L
+            df_R["order"] = values_R["order"]
+            df_R["side"] = values_R["side"]
+            df_R["freq1"] = calues_R["freq1"]
+            df_R["snr"] = values_R["snr"]
+            df_L["order"] = values_L["order"]
+            df_L["side"] = values_L["side"]
+            df_L["freq1"] = values_L["freq1"]
+            df_L["snr"] = values_L["snr"]
 
             df_dpoae = pd.concat([df_R, df_L])
             df_dpoae.reset_index(inplace=True, drop=True)
@@ -1100,37 +1112,17 @@ def growth_others(data_sub, i, oae_file_list,
                 value_R = str(df_R.iloc[d][c]).replace(",", ".")
                 df_R.at[d, c] = float(value_R)
 
-        order_R = []
-        order_L = []
-        side_R = []
-        side_L = []
-        freq1_R = []
-        freq1_L = []
-        snr_R = []
-        snr_L = []
+        values_R = dpoae_suppl_values(1, "R", df_R)
+        values_L = dpoae_suppl_values(2, "L", df_L)
 
-        for q in range(0, len(df_R)):
-            order_R.append(1)
-            side_R.append("R")
-            freq1_R.append(df_R["Freq (Hz)"][q] / 1.22)
-            snr_R.append(df_R["DP (dB)"][q]
-                         - df_R["Noise+2sd (dB)"][q])
-
-        for r in range(0, len(df_L)):
-            order_L.append(2)
-            side_L.append("L")
-            freq1_L.append(df_L["Freq (Hz)"][r] / 1.22)
-            snr_L.append(df_L["DP (dB)"][r]
-                         - df_L["Noise+2sd (dB)"][r])
-
-        df_R["order"] = order_R
-        df_R["side"] = side_R
-        df_R["freq1"] = freq1_R
-        df_R["snr"] = snr_R
-        df_L["order"] = order_L
-        df_L["side"] = side_L
-        df_L["freq1"] = freq1_L
-        df_L["snr"] = snr_L
+        df_R["order"] = values_R["order"]
+        df_R["side"] = values_R["side"]
+        df_R["freq1"] = calues_R["freq1"]
+        df_R["snr"] = values_R["snr"]
+        df_L["order"] = values_L["order"]
+        df_L["side"] = values_L["side"]
+        df_L["freq1"] = values_L["freq1"]
+        df_L["snr"] = values_L["snr"]
 
         df_growth = pd.concat([df_R, df_L])
         df_growth.reset_index(inplace=True, drop=True)
