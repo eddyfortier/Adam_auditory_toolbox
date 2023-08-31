@@ -77,7 +77,13 @@ while loop_value:
                         if ls_fct[value - 1] == (
                             "BIDS format's json sidecars creation"
                         ):
-                            jsg.create_sidecars(os.path.join(".", "results"))
+                            with open("variables.json", "r") as origin:
+                                var_json = json.load(origin)
+                            origin.close()
+
+                            jsg.create_sidecars(
+                                os.path.join(".", "results"), var_json
+                            )
                             print("\n")
 
                         # BIDS compatible dataset formating
