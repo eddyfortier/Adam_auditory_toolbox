@@ -81,9 +81,9 @@ while loop_value:
                                 var_json = json.load(origin)
                             origin.close()
 
-                            jsg.create_sidecars(
-                                os.path.join(".", "results"), var_json
-                            )
+                            result_path = os.path.join(".", "results")
+
+                            jsg.create_sidecars(result_path, var_json)
                             print("\n")
 
                         # BIDS compatible dataset formating
