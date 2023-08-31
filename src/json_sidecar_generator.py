@@ -711,6 +711,7 @@ def create_sidecars(results_folder, var_json):
 
 if __name__ == "__main__":
 
+    root_path = ".."
     parent_path = os.path.join("..", "results")
 
     with open(os.path.join(root_path, "variables.json"), "r") as origin:
