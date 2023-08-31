@@ -31,7 +31,8 @@ utf = "UTF-8-SIG"
 
 
 def fetch_db(data_path, method):
-    """This function retrieves a database to work on.
+    """
+    This function retrieves a database to work on.
     INPUTS:
     -data_path: path to the [repo_root]/data/ folder
     OUTPUTS:
@@ -47,7 +48,8 @@ def fetch_db(data_path, method):
 
 
 def fetch_oae_data(data_path):
-    """This function retrieves the list of OAE test data files
+    """
+    This function retrieves the list of OAE test data files
     INPUTS:
     -data_path: path to the [repo_root]/data/auditory_tests/ folder
     OUTPUTS
@@ -69,16 +71,22 @@ def fetch_oae_data(data_path):
         else:
             pass
 
+    ls_file.sort()
+
     ls_of_ls = []
 
     for i in ls_file:
-        single_test_ls = i.rstrip(".csv").split("_")
-        ls_of_ls.append(single_test_ls)
+        if i.endswith(".csv") is False:
+            continue
+        else:
+            single_test_ls = i.rstrip(".csv").split("_")
+            ls_of_ls.append(single_test_ls)
 
     df = pd.DataFrame(ls_of_ls,
                       columns=["Participant_ID",
-                               "Condition",
+                               "Date",
                                "Test",
+                               "Run",
                                "Ear"])
 
     return path, ls_file, df
@@ -188,9 +196,9 @@ def add_postscan_oae(data_sub, var_json):
         data_sub.loc[k, "Session_ID"] = f"{k+1:02d}"
 
         if (data_sub["Protocol condition"][k]
-                in var_json["OAE_only"]["exist_cond"]):
+                in var_json["bids"]["cond"]["OAE_only"]["already_in_db"]):
             key_oae_only = data_sub["Protocol condition"][k]
-            txt_oae_only = var_json["OAE_only"]["cond_pair"][key_oae_only]
+            txt_oae_only = var_json["bids"]["cond"]["OAE_only"]["cond_pair"][key_oae_only]
 
             sub_df_A = data_sub.iloc[:k+1]
             sub_df_B = data_sub.iloc[k+1:]
@@ -444,7 +452,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
                       var_json, ls_id_og, ls_id_bids, parent_path,
                       auditory_test_path, skip_oae):
     """
-    This function...
+    This function BIDSifies the data for a specified subject
     INPUTS:
     -i: currently processed subject's ID as defined in the variables.json
         file or in the database
@@ -463,19 +471,21 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
     -skip_oae: boolean specifiying if the OAE data should be processed
                depending on the type of experimental condition
     OUTPUTS:
+    -NO specific return to the script
+    -prints a message when the subject's data is processed
     """
 
     # Specifiy the different tests used in those different protocol conditions
-    ls_test = var_json["ls_test"]
+    ls_test = var_json["bids"]["ls_test"]
 
     # Generate the column titles to be used in the tsv files
-    x_tymp = var_json["tsv_columns"]["x_tymp"]
-    x_reflex = var_json["tsv_columns"]["x_reflex"]
-    x_PTA = var_json["tsv_columns"]["x_PTA"]
-    x_MTX = var_json["tsv_columns"]["x_MTX"]
-    x_teoae = var_json["tsv_columns"]["x_teoae"]
-    x_dpoae = var_json["tsv_columns"]["x_dpoae"]
-    x_growth = var_json["tsv_columns"]["x_growth"]
+    x_tymp = var_json["bids"]["tsv_columns"]["tymp"]
+    x_reflex = var_json["bids"]["tsv_columns"]["reflex"]
+    x_PTA = var_json["bids"]["tsv_columns"]["PTA"]
+    x_MTX = var_json["bids"]["tsv_columns"]["MTX"]
+    x_teoae = var_json["bids"]["tsv_columns"]["teoae"]
+    x_dpoae = var_json["bids"]["tsv_columns"]["dpoae"]
+    x_growth = var_json["bids"]["tsv_columns"]["growth"]
 
     # Update the list of original (non-BIDSified) IDs
     ls_id_og.append(i)
@@ -512,7 +522,7 @@ def subject_bidsifier(i, df, oae_tests_df, oae_file_list, column_titles,
 
     # Specify the columns to be used for each test
     # -> Subject and session settings data
-    columns_conditions = var_json["columns_conditions"]
+    columns_conditions = var_json["bids"]["columns_conditions"]
 
     # Extraction of the test columns
     tymp = utils.eliminate_columns(data_sub,
@@ -639,12 +649,11 @@ def bidsify(df, oae_file_list, oae_tests_df, var_json,
     -skip_oae: boolean specifiying if the OAE data should be processed
                depending on the type of experimental condition
     OUTPUTS:
-    -
+    -NO specific return to the script
     """
 
     # Create a list of the subjects
-    subjects = var_json["subjects"] ### OBSOLETE ###
-    #subjects = list(dict.fromkeys(df["Participant_ID"].tolist()))
+    subjects = list(dict.fromkeys(df["Participant_ID"].tolist()))
 
     # Create two lists of subject IDs to establish a concordence file between
     # the original IDs and the bidsified IDs
@@ -756,8 +765,8 @@ if __name__ == "__main__":
     origin.close()
 
     # Path initializations
-    data_path = os.path.join(root_path, var_json["path_var"]["data"])
-    result_path = os.path.join(root_path, var_json["path_var"]["result"])
+    data_path = os.path.join(root_path, var_json["path"]["data"])
+    result_path = os.path.join(root_path, var_json["path"]["result"])
 
     master_run(data_path, result_path, var_json, "standalone")
     print("\n")
