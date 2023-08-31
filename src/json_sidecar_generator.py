@@ -14,122 +14,27 @@ lvl_order = {"1": "First sequence acquired",
 
 lvl_side = {"R": "Right ear", "L": "Left ear"}
 
-lvl_ses_name = {"Baseline 1": "Baseline at the beginning of the Projet "
-                              "Courtois NeuroMod",
-                "Baseline 2": "Baseline at the beginning of the auditory "
-                              "tests protocol",
-                "Baseline 3": "Baseline at the end of the auditory tests "
-                              "protocol",
-                "Month 1": "Experimental session 1",
-                "Month 2": "Experimental session 2",
-                "Month 3": "Experimental session 3",
-                "Month 4": "Experimental session 4",
-                "Month 5": "Experimental session 5",
-                "Month 6": "Experimental session 6",
-                "Month 7": "Experimental session 7",
-                "Month 8": "Experimental session 8",
-                "Month 9": "Experimental session 9",
-                "Month 10": "Experimental session 10",
-                "Month 11": "Experimental session 11",
-                "Month 12": "Experimental session 12",
-                "Suppl. PTA test": "Baseline at the beginning of the "
-                                   "supplementary pure tone audiometry "
-                                   "special protocol",
-                "Suppl. PTA test 1": "Supplementary PTA protocol session 1",
-                "Suppl. PTA test 2": "Supplementary PTA protocol session 2",
-                "Suppl. PTA test 3": "Supplementary PTA protocol session 3",
-                "Suppl. PTA test 4": "Supplementary PTA protocol session 4",
-                "Suppl. PTA test 5": "Supplementary PTA protocol session 5"}
-
-lvl_condition = {"Baseline": "Baseline: includes Tympanometry, Stapedial "
-                             "reflex, Pure tone audiometry, Matrix speech-in-"
-                             "noise perception test, Transient-evoked "
-                             "otoacoustic emissions, Distortion product "
-                             "otoacoustic emissions and Distortion product "
-                             "otoacoustic emissions' growth function at 4 kHz",
-                 "1A": "Hearing test session right before the scan: includes "
-                       "Tympanometry, Stapedial reflex, Pure tone audiometry "
-                       "and Matrix speech-in-noise perception test",
-                 "1B": "Hearing test session right after the scan: includes "
-                       "Pure tone audiometry and Matrix speech-in-noise "
-                       "perception test",
-                 "2": "Hearing test session 2-7 days post-scan: includes "
-                      "Tympanometry, Stapedial reflex, Pure tone audiometry, "
-                      "Matrix speech-in-noise perception test, "
-                      "Transient-evoked otoacoustic emissions, Distortion "
-                      "product otoacoustic emissions and Distortion product "
-                      "otoacoustic emissions' growth function at 4 kHz",
-                 "3A": "OAE test session right before the scan: includes "
-                       "Tympanometry, Stapedial reflex, Transient-evoked "
-                       "otoacoustic emissions, Distortion product otoacoustic "
-                       "emissions and Distortion product otoacoustic "
-                       "emissions' growth function at 2, 4 and 6 kHz",
-                 "3B": "OAE test session right after the scan: includes "
-                       "Transient-evoked otoacoustic emissions, Distortion "
-                       "product otoacoustic emissions and Distortion product "
-                       "otoacoustic emissions' growth function at 2, 4 and "
-                       "6 kHz",
-                 "Suppl. PTA (Baseline)": "Baseline: includes Tympanometry, "
-                                          "Stapedial reflex and Pure tone "
-                                          "audiometry",
-                 "Suppl. PTA A": "Hearing test session right before the "
-                                 "scan: includes Pure tone audiometry. May "
-                                 "also include Tympanometry and Stapedial "
-                                 "reflex",
-                 "Suppl. PTA B": "Hearing test session right after the "
-                                 "scan: includes Pure tone audiometry"}
-
-lvl_scan = {"No Scan": "Session not linked to a scan session",
-            "Anatomical": "Session linked to an anatomical MRI scan session",
-            "Functional": "Session linked to a functional MRI scan session"}
-
 lvl_ses_test = {"1": "Test data available for this type of test",
                 "0": "No test data available for this type of test"}
 
 ls_task = ["Tymp", "Reflex", "PTA",
            "MTX", "TEOAE", "DPOAE",
-           "Growth_2000", "Growth_4000", "Growth_6000"]
+           "Growth"]
 
 index = ["LongName", "Description", "Levels", "Units"]
 
-keys_tymp = ["order", "side", "type", "tpp", "ecv", "sc", "tw"]
 
-keys_reflex = ["order", "side",
-               "500_hz", "1000_hz", "2000_hz", "4000_hz", 'noise']
-
-keys_pta = ["order", "side", "125_hz", "250_hz", "500_hz", "750_hz",
-            "1000_hz", "1500_hz", "2000_hz", "3000_hz", "4000_hz",
-            "6000_hz", "8000_hz", "9000_hz", "10000_hz", "11200_hz",
-            "12500_hz", "14000_hz", "16000_hz", "18000_hz", "20000_hz"]
-
-keys_mtx = ["order", "language", "practice", "sp_bin_no_bin",
-            "sp_l_no_bin", "sp_r_no_bin", "sp_l_no_l", "sp_r_no_r"]
-
-keys_teoae = ["order", "side", "freq", "oae",
-              "noise", "snr", "confidence"]
-
-keys_dpoae = ["order", "side", "freq1", "freq2", "l1",
-              "l2", "dp", "snr", "noise+2sd", "noise+1sd",
-              "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"]
-
-keys_growth = ["order", "side", "freq1", "freq2", "l1",
-               "l2", "dp", "snr", "noise+2sd", "noise+1sd",
-               "2f2-f1", "3f1-2f2", "3f2-2f1", "4f1-3f2"]
-
-keys_ses = ["session_id", "session_name", "condition", "delay",
-            "scan_type", "Tymp", "Reflex", "PTA", "MTX", "TEOAE",
-            "DPOAE", "DPGrowth_2kHz", "DPGrowth_4kHz", "DPGrowth_6kHz"]
-
-
-def gen_df_tymp():
+def gen_df_tymp(var_json):
     """
     This function generates the tympanometry test (Tymp)
     sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_tymp = var_json["json"]["keys"]["tymp"]
 
     df_tymp = pd.DataFrame(index=index, columns=keys_tymp)
 
@@ -197,15 +102,17 @@ def gen_df_tymp():
     return df_tymp
 
 
-def gen_df_reflex():
+def gen_df_reflex(var_json):
     """
     This function generates the stapedial reflex test (Reflex)
     sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_reflex = var_json["json"]["keys"]["reflex"]
 
     df_reflex = pd.DataFrame(index=index, columns=keys_reflex)
 
@@ -239,15 +146,17 @@ def gen_df_reflex():
     return df_reflex
 
 
-def gen_df_pta():
+def gen_df_pta(var_json):
     """
     This function generates the pure-tone audiometry test (PTA)
     sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_pta = var_json["json"]["keys"]["pta"]
 
     df_pta = pd.DataFrame(index=index, columns=keys_pta)
 
@@ -273,15 +182,17 @@ def gen_df_pta():
     return df_pta
 
 
-def gen_df_mtx():
+def gen_df_mtx(var_json):
     """
     This function generates the matrix speech-in-noise perception
     test (MTX) sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_mtx = var_json["json"]["keys"]["mtx"]
 
     df_mtx = pd.DataFrame(index=index, columns=keys_mtx)
 
@@ -339,15 +250,17 @@ def gen_df_mtx():
     return df_mtx
 
 
-def gen_df_teoae():
+def gen_df_teoae(var_json):
     """
     This function generates the transient-evoked otoacoustic
     emissions test (TEOAE) sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_teoae = var_json["json"]["keys"]["teoae"]
 
     df_teoae = pd.DataFrame(index=index, columns=keys_teoae)
 
@@ -400,15 +313,17 @@ def gen_df_teoae():
     return df_teoae
 
 
-def gen_df_dpoae():
+def gen_df_dpoae(var_json):
     """
     This function generates the distortion product otoacoustic
     emissions test (DPOAE) sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_dpoae = var_json["json"]["keys"]["dpoae"]
 
     df_dpoae = pd.DataFrame(index=index, columns=keys_dpoae)
 
@@ -500,15 +415,17 @@ def gen_df_dpoae():
     return df_dpoae
 
 
-def gen_df_growth():
+def gen_df_growth(var_json):
     """
     This function generates the distortion product otoacoustic
     emissions growth function test (DP-Growth) sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
+
+    keys_growth = var_json["json"]["keys"]["growth"]
 
     df_growth = pd.DataFrame(index=index, columns=keys_growth)
 
@@ -600,16 +517,18 @@ def gen_df_growth():
     return df_growth
 
 
-def gen_df_sessions():
+def gen_df_sessions(var_json):
     """
     This function generates the session-level sessions.tsv sidecar dataframe.
     INPUTS:
-    -NO specific external input
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -returns a dataframe ready to be saved in a json format
     """
 
-    df_sessions = pd.DataFrame(index=index, columns=keys_ses)
+    keys_ses = var_json["json"]["keys"]["ses"]
+
+    df_ses = pd.DataFrame(index=index, columns=keys_ses)
 
     dict_longname_sessions = {keys_ses[0]: "Session identification number",
                               keys_ses[1]: "Session name and/or type",
@@ -627,14 +546,7 @@ def gen_df_sessions():
                               keys_ses[10]: "Distortion product otoacoustic "
                                             "emissions",
                               keys_ses[11]: "Distortion product otoacoustic "
-                                            "emissions growth function at "
-                                            "2 kHz",
-                              keys_ses[12]: "Distortion product otoacoustic "
-                                            "emissions growth function at "
-                                            "4 kHz",
-                              keys_ses[13]: "Distortion product otoacoustic "
-                                            "emissions growth function at "
-                                            "6 kHz"}
+                                            "emissions growth function"}
 
     dict_desc_sessions = {keys_ses[0]: "Identification number of the sessions "
                                        "using the BIDS format (ses-XX, "
@@ -681,57 +593,42 @@ def gen_df_sessions():
                                         "dB SPL (for f2).",
                           keys_ses[11]: "Otoacoustic emissions test using the "
                                         "simultaneous presentation of two "
-                                        "pure tones (f1 and f2) with a f2/f1 "
-                                        "ratio of 1,22 and where the target "
-                                        "f2 = 2 kHz. The pair of frequencies "
-                                        "f1-f2 is presented with decreasing "
-                                        "intensities.",
-                          keys_ses[12]: "Otoacoustic emissions test using the "
-                                        "simultaneous presentation of two "
-                                        "pure tones (f1 and f2) with a f2/f1 "
-                                        "ratio of 1,22 and where the target "
-                                        "f2 = 4 kHz. The pair of frequencies "
-                                        "f1-f2 is presented with decreasing "
-                                        "intensities.",
-                          keys_ses[13]: "Otoacoustic emissions test using the "
-                                        "simultaneous presentation of two "
-                                        "pure tones (f1 and f2) with a f2/f1 "
-                                        "ratio of 1,22 and where the target "
-                                        "f2 = 6 kHz. The pair of frequencies "
-                                        "f1-f2 is presented with decreasing "
-                                        "intensities."}
+                                        "fixed pure tones (f1 and f2) with "
+                                        "a f2/f1 ratio of 1,22. The pair of "
+                                        "frequencies f1-f2 is presented with "
+                                        "decreasing intensities."}
 
     for k_ses in keys_ses:
         if k_ses == keys_ses[0]:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
 
         elif k_ses == keys_ses[1]:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
-            df_sessions.at[index[2], k_ses] = lvl_ses_name
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[2], k_ses] = var_json["json"]["lvl"]["ses_name"]
 
         elif k_ses == keys_ses[2]:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
-            df_sessions.at[index[2], k_ses] = lvl_condition
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[2], k_ses] = var_json["json"]["lvl"]["cond"]
 
         elif k_ses == keys_ses[3]:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
-            df_sessions.at[index[3], k_ses] = "days"
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[3], k_ses] = "days"
 
         elif k_ses == keys_ses[4]:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
-            df_sessions.at[index[2], k_ses] = lvl_scan
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[2], k_ses] = var_json["json"]["lvl"]["scan"]
 
         else:
-            df_sessions.at[index[0], k_ses] = dict_longname_sessions[k_ses]
-            df_sessions.at[index[1], k_ses] = dict_desc_sessions[k_ses]
-            df_sessions.at[index[2], k_ses] = lvl_ses_test
+            df_ses.at[index[0], k_ses] = dict_longname_sessions[k_ses]
+            df_ses.at[index[1], k_ses] = dict_desc_sessions[k_ses]
+            df_ses.at[index[2], k_ses] = lvl_ses_test
 
-    return df_sessions
+    return df_ses
 
 
 def save_json(df, save_folder, test):
@@ -772,12 +669,13 @@ def save_json(df, save_folder, test):
     print("Saved", filename)
 
 
-def create_sidecars(results_folder):
+def create_sidecars(results_folder, var_json):
     """
     This function serves a master function for this script. It runs the
     complete json sidecar generation and saves the newly created files.
     INPUTS:
     -results_folder: path where to save the created files
+    -var_json: config file with user-supplied values
     OUTPUTS:
     -NO specific return to the script
     """
@@ -792,14 +690,14 @@ def create_sidecars(results_folder):
 
     save_folder = os.path.join(results_folder, "BIDS_sidecars_originals")
 
-    df_tymp = gen_df_tymp()
-    df_reflex = gen_df_reflex()
-    df_pta = gen_df_pta()
-    df_mtx = gen_df_mtx()
-    df_teoae = gen_df_teoae()
-    df_dpoae = gen_df_dpoae()
-    df_growth = gen_df_growth()
-    df_sessions = gen_df_sessions()
+    df_tymp = gen_df_tymp(var_json)
+    df_reflex = gen_df_reflex(var_json)
+    df_pta = gen_df_pta(var_json)
+    df_mtx = gen_df_mtx(var_json)
+    df_teoae = gen_df_teoae(var_json)
+    df_dpoae = gen_df_dpoae(var_json)
+    df_growth = gen_df_growth(var_json)
+    df_sessions = gen_df_sessions(var_json)
 
     save_json(df_tymp, save_folder, "Tymp")
     save_json(df_reflex, save_folder, "Reflex")
@@ -815,7 +713,11 @@ if __name__ == "__main__":
 
     parent_path = os.path.join("..", "results")
 
-    create_sidecars(parent_path)
+    with open(os.path.join(root_path, "variables.json"), "r") as origin:
+        var_json = json.load(origin)
+    origin.close()
+
+    create_sidecars(parent_path, var_json)
 
 
 else:
